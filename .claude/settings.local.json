@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma__whoami",
+      "PowerShell(curl *)"
+    ]
+  }
+}
