@@ -197,8 +197,7 @@ export function CalendarView({
             const isTodayDate = isToday(date);
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
-            const displayTodos = dayTodos.slice(0, 2);
-            const overflow = Math.max(0, dayTodos.length - displayTodos.length);
+            const overflowCount = Math.max(0, dayTodos.length - 3);
 
             if (inlineAddDate === dateStr) {
               return (
@@ -227,7 +226,7 @@ export function CalendarView({
                 onDoubleClick={() => handleCellDoubleClick(dateStr)}
                 onMouseEnter={() => setHoveredDate(dateStr)}
                 onMouseLeave={() => setHoveredDate(null)}
-                className={`relative flex flex-col items-stretch justify-start gap-0.5 pt-2 pb-1 transition-colors ${
+                className={`relative flex flex-col items-stretch justify-start gap-0.5 pt-2 pb-1 transition-colors overflow-hidden ${
                   !isCurrentMonth
                     ? "bg-card/40 text-muted-foreground/30"
                     : isSelected
@@ -248,7 +247,7 @@ export function CalendarView({
                 </span>
                 {isCurrentMonth && dayTodos.length > 0 && (
                   <div className="w-full px-1 space-y-0.5">
-                    {displayTodos.map((t) => (
+                    {dayTodos.map((t) => (
                       <div key={t.id} className="flex items-center gap-1 min-w-0">
                         <div
                           className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[t.priority] ?? "bg-muted-foreground"}`}
@@ -258,9 +257,9 @@ export function CalendarView({
                         </span>
                       </div>
                     ))}
-                    {overflow > 0 && (
+                    {overflowCount > 0 && (
                       <span className="text-[10px] text-muted-foreground leading-none pl-2.5">
-                        +{overflow} 个
+                        +{overflowCount} 个
                       </span>
                     )}
                   </div>
