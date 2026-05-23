@@ -1,7 +1,9 @@
 import * as Checkbox from "@radix-ui/react-checkbox";
 import { CalendarDays, Check, Clock, FileText, Flag, Plus, Trash2, X } from "lucide-react";
-import { Category, Todo } from "./types";
+import { Category, Priority, Todo } from "./types";
 import { useState } from "react";
+import { DatePicker } from "./ui/DatePicker";
+import { TimePicker } from "./ui/TimePicker";
 
 interface TodoDetailPanelProps {
   todo: Todo;
@@ -26,11 +28,20 @@ export function TodoDetailPanel({
   const [subtasks, setSubtasks] = useState<{ id: string; text: string; completed: boolean }[]>(
     Array.isArray(todo.subtasks) ? todo.subtasks : []
   );
+  const [text, setText] = useState(todo.text);
   const [newSubtask, setNewSubtask] = useState("");
   const [note, setNote] = useState(todo.note ?? "");
 
-  const priorityLabels = { high: "高优先级", medium: "中优先级", low: "低优先级" };
   const category = categories.find((c) => c.id === todo.category);
+
+  const handleSaveText = () => {
+    const trimmed = text.trim();
+    if (trimmed && trimmed !== todo.text) {
+      onUpdate(todo.id, { text: trimmed });
+    } else if (!trimmed) {
+      setText(todo.text);
+    }
+  };
 
   const handleAddSubtask = () => {
     if (!newSubtask.trim()) return;
@@ -66,7 +77,14 @@ export function TodoDetailPanel({
                 <Check className="w-4 h-4 text-white" />
               </Checkbox.Indicator>
             </Checkbox.Root>
-            <h2 className="text-xl font-medium text-foreground truncate">{todo.text || "未命名任务"}</h2>
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onBlur={handleSaveText}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+              className="text-xl font-medium text-foreground bg-transparent border-none outline-none min-w-0 flex-1 placeholder:text-muted-foreground"
+              placeholder="未命名任务"
+            />
           </div>
           <button
             onClick={onClose}
@@ -81,22 +99,68 @@ export function TodoDetailPanel({
           {/* Meta info with icons */}
           <section className="space-y-3">
             <div className="flex items-center gap-3">
-              <CalendarDays className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{todo.dueDate || "未设置日期"}</span>
+              <CalendarDays className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1">
+                <DatePicker
+                  value={todo.dueDate ?? ""}
+                  placeholder="未设置日期"
+                  onChange={(v) => onUpdate(todo.id, { dueDate: v || undefined })}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{todo.dueTime || "未设置时间"}</span>
+              <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1">
+                <TimePicker
+                  value={todo.dueTime ?? ""}
+                  placeholder="未设置时间"
+                  onChange={(v) => onUpdate(todo.id, { dueTime: v || undefined })}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <Flag className="w-5 h-5 text-muted-foreground" />
-              <span className={`text-sm ${todo.priority === "high" ? "text-chart-2" : "text-muted-foreground"}`}>
-                {priorityLabels[todo.priority]}
-              </span>
+              <Flag className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex gap-1.5">
+                {([
+                  { value: "low" as Priority, label: "低", color: "bg-chart-4", text: "text-chart-4" },
+                  { value: "medium" as Priority, label: "中", color: "bg-chart-1", text: "text-chart-1" },
+                  { value: "high" as Priority, label: "高", color: "bg-chart-2", text: "text-chart-2" },
+                ]).map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => onUpdate(todo.id, { priority: p.value })}
+                    className={`h-[35px] px-3 rounded-lg border text-sm transition-colors flex items-center gap-1.5 ${
+                      todo.priority === p.value
+                        ? `${p.color} text-white border-transparent`
+                        : `bg-card border-border ${p.text} hover:border-current`
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${todo.priority === p.value ? "bg-white" : p.color}`} />
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${category?.color ?? "bg-muted"}`} />
-              <span className="text-sm text-muted-foreground">{category?.name ?? "未分类"}</span>
+            <div className="flex items-start gap-3">
+              <div className={`w-3 h-3 rounded-full mt-2.5 ${category?.color ?? "bg-muted"} flex-shrink-0`} />
+              <div className="flex flex-wrap gap-1.5">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => onUpdate(todo.id, { category: cat.id })}
+                    className={`h-[35px] px-3 rounded-lg border text-sm transition-colors flex items-center gap-1.5 ${
+                      todo.category === cat.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card border-border text-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${cat.color}`} />
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 

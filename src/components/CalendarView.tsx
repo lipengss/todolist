@@ -242,12 +242,9 @@ export function CalendarView({
                 {isCurrentMonth && dayTodos.length > 0 && (
                   <div className="w-full px-1 space-y-0.5">
                     {dayTodos.map((t) => (
-                      <div key={t.id} className="flex items-center gap-1 min-w-0">
-                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${PRIORITY_TEXT[t.priority]?.replace("text-", "bg-") ?? "bg-muted-foreground"}`} />
-                        <span className={`text-[10px] truncate leading-tight ${PRIORITY_TEXT[t.priority] ?? "text-foreground"}`}>
-                          {t.text}
-                        </span>
-                      </div>
+                      <span key={t.id} className="text-[10px] text-foreground truncate leading-tight block">
+                        {t.text}
+                      </span>
                     ))}
                     {overflowCount > 0 && (
                       <span className="text-[10px] text-muted-foreground leading-none pl-2.5">
