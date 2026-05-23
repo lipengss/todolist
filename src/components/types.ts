@@ -21,7 +21,7 @@ export interface Todo {
   deletedAt?: string;
 }
 
-export type FilterType = "today" | "planned" | "inbox" | "all" | "completed" | "trash";
+export type FilterType = "calendar" | "today" | "planned" | "inbox" | "all" | "completed" | "trash";
 
 export type PriorityFilter = "all" | Priority;
 

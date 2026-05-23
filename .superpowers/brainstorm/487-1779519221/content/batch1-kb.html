@@ -1,0 +1,92 @@
+<h2>第一批设计：键盘快捷键</h2>
+<p class="subtitle">让常用操作无需鼠标，提升输入效率</p>
+
+<div class="section">
+  <h3>快捷键清单</h3>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">按 ? 弹出快捷键帮助面板</div>
+  <div class="mockup-body">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="color:#9ca3af;font-size:12px;text-align:left;border-bottom:1px solid #2a2f3e;">
+          <th style="padding:8px;">快捷键</th>
+          <th style="padding:8px;">功能</th>
+          <th style="padding:8px;">适用视图</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Ctrl+N</td>
+          <td style="padding:8px;">新建任务</td>
+          <td style="padding:8px;color:#9ca3af;">全局</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Ctrl+F</td>
+          <td style="padding:8px;">聚焦搜索框</td>
+          <td style="padding:8px;color:#9ca3af;">全局</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">?</td>
+          <td style="padding:8px;">显示/隐藏快捷键面板</td>
+          <td style="padding:8px;color:#9ca3af;">全局</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">↑↓</td>
+          <td style="padding:8px;">上下切换任务焦点</td>
+          <td style="padding:8px;color:#9ca3af;">列表视图</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Space</td>
+          <td style="padding:8px;">切换任务完成状态</td>
+          <td style="padding:8px;color:#9ca3af;">列表视图 (聚焦时)</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Enter</td>
+          <td style="padding:8px;">打开任务详情</td>
+          <td style="padding:8px;color:#9ca3af;">列表视图 (聚焦时)</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Delete</td>
+          <td style="padding:8px;">删除当前任务</td>
+          <td style="padding:8px;color:#9ca3af;">列表视图 (聚焦时)</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1a1f2e;">
+          <td style="padding:8px;font-family:monospace;color:#8b5cf6;">Esc</td>
+          <td style="padding:8px;">关闭弹窗/面板</td>
+          <td style="padding:8px;color:#9ca3af;">弹出层内</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>实现方案</h3>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>新增文件</h4>
+    <ul>
+      <li>src/hooks/useKeyboardShortcuts.ts — 自定义 Hook，集中管理快捷键</li>
+      <li>src/components/ShortcutHelpPanel.tsx — ? 键弹出的帮助浮层</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>修改文件</h4>
+    <ul>
+      <li>App.tsx — 挂载 useKeyboardShortcuts Hook</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <ul style="color:#9ca3af;font-size:14px;">
+    <li>useKeyboardShortcuts 在 App 层挂载，useEffect 绑定 window keydown</li>
+    <li>每个快捷键检查当前上下文（是否在输入框中、是否有弹窗、当前视图）决定是否触发</li>
+    <li>列表焦点通过 useState 管理 focusedIndex，上下键移动，视觉用 outline 环展示</li>
+    <li>帮助面板用固定定位浮层，Esc 或 ? 关闭</li>
+  </ul>
+</div>

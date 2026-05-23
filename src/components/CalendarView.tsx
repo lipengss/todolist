@@ -281,7 +281,7 @@ export function CalendarView({
       </div>
 
       {selectedDate && (
-        <div className="w-80 border-l border-border flex flex-col bg-card/50">
+        <div className="w-80 border-l border-border flex flex-col bg-card/50 min-w-0 overflow-hidden">
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
@@ -329,9 +329,9 @@ export function CalendarView({
                     <button
                       key={todo.id}
                       onClick={() => onOpenDetail(todo.id)}
-                      className="w-full text-left p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-colors overflow-hidden min-w-0"
+                      className="w-full block text-left p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-colors overflow-hidden min-w-0"
                     >
-                      <div className="flex items-start gap-2">
+                      <div className="grid grid-cols-[auto_1fr] gap-2 items-start w-full min-w-0">
                         <div
                           role="checkbox"
                           aria-checked={todo.completed}
@@ -359,13 +359,13 @@ export function CalendarView({
                             </svg>
                           )}
                         </div>
-                        <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="min-w-0 overflow-hidden">
                           <p
-                            className={`text-sm truncate ${
+                            className={`text-sm truncate transition-colors ${
                               todo.completed ? "line-through text-muted-foreground" : "text-foreground"
                             }`}
                           >
-                            {todo.text}xx
+                            {todo.text}
                           </p>
                           <div className="flex items-center gap-2 mt-1.5">
                             {todo.dueTime && (

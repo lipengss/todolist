@@ -1,0 +1,100 @@
+<h2>第一批设计：日历格快速添加</h2>
+<p class="subtitle">点击日历格子直接添加任务，日期自动填充</p>
+
+<div class="section">
+  <h3>交互方案</h3>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">方案 A：日期格悬停显示 + 按钮</div>
+  <div class="mockup-body">
+    <div style="display:flex;gap:1rem;">
+      <div style="flex:1;text-align:center;">
+        <div style="background:#1a1f2e;border-radius:8px;padding:1rem;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">6</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">7</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">8</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">9</div>
+            <div style="padding:8px;font-size:12px;text-align:center;position:relative;background:rgba(139,92,246,0.1);border-radius:6px;">
+              <span style="color:white;">10</span>
+              <div style="width:4px;height:4px;border-radius:50%;background:#e03a3e;margin:2px auto;"></div>
+              <div style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#8b5cf6;color:white;font-size:14px;line-height:18px;text-align:center;">+</div>
+            </div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">11</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">12</div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:8px;">悬停时日期格右上角出现 + 按钮</p>
+      </div>
+      <div style="flex:1;text-align:center;">
+        <div style="background:#1a1f2e;border-radius:8px;padding:1rem;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">6</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">7</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">8</div>
+            <div style="padding:4px;text-align:center;background:rgba(139,92,246,0.1);border-radius:6px;border:1px solid #8b5cf6;">
+              <span style="font-size:12px;color:white;">10</span>
+              <input style="width:100%;margin-top:4px;padding:2px 4px;font-size:11px;background:#0f1419;border:1px solid #8b5cf6;border-radius:4px;color:white;" placeholder="新任务..." value="">
+            </div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">11</div>
+            <div style="padding:8px;font-size:12px;text-align:center;color:#9ca3af;">12</div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:8px;">点击 + 后该格展开为小型输入框</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:1.5rem;">
+  <div class="mockup-header">方案 B：右侧面板顶部添加按钮</div>
+  <div class="mockup-body">
+    <div style="background:#1a1f2e;border-radius:8px;padding:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #2a2f3e;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:600;color:white;">5月10日 星期六</div>
+          <div style="font-size:12px;color:#9ca3af;">3 个任务</div>
+        </div>
+        <div style="width:32px;height:32px;border-radius:8px;background:#8b5cf6;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;">+</div>
+      </div>
+      <div style="font-size:13px;color:#9ca3af;text-align:center;padding:1rem;">
+        点击 + 弹出小型输入框，<br>按回车快速创建任务
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>推荐：两者结合</h3>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>日期格 + 按钮（方案 A）</h4>
+    <ul>
+      <li>日期格悬停时右上角显示小 +</li>
+      <li>点击 + 或双击日期格 → 该格展开为内联输入框</li>
+      <li>输入任务名后按 Enter 创建，日期自动填充为该格日期</li>
+      <li>按 Esc 取消，恢复为正常日期格</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>右侧面板 + 按钮（方案 B）</h4>
+    <ul>
+      <li>选中日期后，右侧面板标题栏始终显示 + 按钮</li>
+      <li>点击后在面板顶部出现输入框</li>
+      <li>输入 Enter 创建，自动关联当前选中日期</li>
+      <li>同样 Esc 取消</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>涉及改动</h3>
+  <ul style="color:#9ca3af;font-size:14px;">
+    <li><strong>CalendarView.tsx</strong> — 日期格添加悬停态和 + 按钮；右侧面板标题栏添加 + 按钮；管理内联输入状态</li>
+    <li><strong>App.tsx</strong> — 暴露 handleAddTodo(date?: string) 方法，支持传入预填日期</li>
+    <li>新任务默认值：当天日期 + 默认分类 + 中优先级</li>
+  </ul>
+</div>

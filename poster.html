@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusWorkspace - 宣传海报</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: #0a0e14;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .poster {
+    width: 1080px; height: 1520px;
+    background: linear-gradient(180deg, #0F1419 0%, #151922 40%, #1a1025 100%);
+    position: relative; overflow: hidden;
+  }
+
+  /* Decorative background elements */
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .bg-glow-1 {
+    position: absolute; top: -200px; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+  .bg-glow-2 {
+    position: absolute; bottom: 100px; left: -150px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* Content */
+  .content { position: relative; z-index: 1; padding: 80px 70px; height: 100%; display: flex; flex-direction: column; }
+
+  /* Header */
+  .header { display: flex; align-items: center; gap: 24px; margin-bottom: 60px; }
+  .logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 32px rgba(139,92,246,0.3);
+  }
+  .logo svg { width: 40px; height: 40px; }
+  .title-block h1 { font-size: 52px; font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: -1px; }
+  .title-block p { font-size: 20px; color: #8892A4; margin-top: 6px; }
+
+  /* Tagline */
+  .tagline {
+    font-size: 22px; color: #8B5CF6; font-weight: 600;
+    margin-bottom: 50px; letter-spacing: 2px;
+  }
+
+  /* Feature cards */
+  .features {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; margin-bottom: 50px;
+  }
+  .feature {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 28px 30px;
+    transition: all 0.3s;
+  }
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    font-size: 22px;
+  }
+  .feature h3 { font-size: 19px; color: #fff; font-weight: 700; margin-bottom: 8px; }
+  .feature p { font-size: 14px; color: #8892A4; line-height: 1.6; }
+
+  .fi-calendar { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+  .fi-notify { background: rgba(239,68,68,0.15); color: #EF4444; }
+  .fi-keyboard { background: rgba(59,130,246,0.15); color: #3B82F6; }
+  .fi-category { background: rgba(249,115,22,0.15); color: #F97316; }
+  .fi-subtask { background: rgba(34,197,94,0.15); color: #22C55E; }
+  .fi-offline { background: rgba(156,163,175,0.15); color: #9CA3AF; }
+
+  /* Screenshot area */
+  .screenshot-area {
+    flex: 1;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen-label {
+    font-size: 13px; color: #8B5CF6; font-weight: 600;
+    margin-bottom: 16px; letter-spacing: 1px;
+  }
+  .mock-ui {
+    display: flex; gap: 16px; height: calc(100% - 40px);
+  }
+  .mock-sidebar {
+    width: 200px; background: rgba(255,255,255,0.03);
+    border-radius: 12px; padding: 14px;
+    flex-shrink: 0;
+  }
+  .mock-sidebar-item {
+    height: 32px; border-radius: 8px; margin-bottom: 6px;
+    display: flex; align-items: center; padding: 0 10px;
+    font-size: 12px; color: #8892A4;
+  }
+  .mock-sidebar-item.active {
+    background: rgba(139,92,246,0.2); color: #A78BFA;
+  }
+  .mock-sidebar-dot {
+    width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;
+  }
+  .mock-main {
+    flex: 1; background: rgba(255,255,255,0.02);
+    border-radius: 12px; padding: 16px;
+  }
+  .mock-task {
+    height: 38px; border-radius: 8px; margin-bottom: 8px;
+    display: flex; align-items: center; padding: 0 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+  }
+  .mock-checkbox {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 2px solid rgba(255,255,255,0.2);
+    margin-right: 12px; flex-shrink: 0;
+  }
+  .mock-checkbox.done {
+    background: #22C55E; border-color: #22C55E;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 10px;
+  }
+  .mock-task-text {
+    flex: 1; height: 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+  }
+  .mock-task-text.done { background: rgba(255,255,255,0.04); width: 70%; text-decoration: line-through; }
+  .mock-badge {
+    height: 18px; border-radius: 9px; padding: 0 10px;
+    font-size: 10px; display: flex; align-items: center;
+    margin-left: 8px;
+  }
+
+  /* CTA */
+  .cta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 50px;
+  }
+  .tech-stack {
+    display: flex; gap: 16px;
+  }
+  .tech-item {
+    font-size: 13px; color: #8892A4;
+    padding: 6px 16px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .cta {
+    font-size: 16px; color: #A78BFA; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="content">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="title-block">
+        <h1>FocusWorkspace</h1>
+        <p>专注待办 · 高效执行</p>
+      </div>
+    </div>
+
+    <!-- Tagline -->
+    <div class="tagline">YOUR PRODUCTIVITY, ELEVATED</div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon fi-calendar">📅</div>
+        <h3>日历看板</h3>
+        <p>月视图直观展示任务分布，优先级色块一目了然，双击即可快速添加</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-notify">🔔</div>
+        <h3>智能提醒</h3>
+        <p>定时任务提前提醒 + 全天任务前一天预警，支持可配置重复通知</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-keyboard">⌨️</div>
+        <h3>键盘快捷键</h3>
+        <p>Ctrl+N 新建 · Ctrl+F 搜索 · ↑↓ 导航 · Space 完成 · 全键盘操作流</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-category">🏷️</div>
+        <h3>分类管理</h3>
+        <p>自定义分类 + 颜色标签，工作/学习/生活灵活分组，快速筛选</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-subtask">✅</div>
+        <h3>子任务 & 备注</h3>
+        <p>大任务拆解为子任务逐步完成，支持富备注记录上下文</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-offline">💻</div>
+        <h3>跨平台桌面端</h3>
+        <p>Electron 构建，Windows / macOS / Linux 原生体验，数据本地存储</p>
+      </div>
+    </div>
+
+    <!-- Mock UI -->
+    <div class="screenshot-area">
+      <div class="screen-label">▸ 应用界面预览</div>
+      <div class="mock-ui">
+        <div class="mock-sidebar">
+          <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+            <div style="width:22px;height:22px;background:#8B5CF6;border-radius:6px;"></div>
+            FocusWorkspace
+          </div>
+          <div class="mock-sidebar-item" style="background:rgba(139,92,246,0.12);color:#A78BFA;">📅  日历</div>
+          <div class="mock-sidebar-item">🕐  今天</div>
+          <div class="mock-sidebar-item">📋  计划</div>
+          <div class="mock-sidebar-item">⭐  收集箱</div>
+          <div class="mock-sidebar-item">📄  全部任务</div>
+          <div style="font-size:10px;color:#8892A4;margin-top:20px;margin-bottom:8px;padding-left:2px;">任务分类</div>
+          <div class="mock-sidebar-item">
+            <div class="mock-sidebar-dot" style="background:#F97316;"></div>工作 <span style="margin-left:auto;font-size:10px;">5</span>
+          </div>
+          <div class="mock-sidebar-item">
+            <div class="mock-sidebar-dot" style="background:#9CA3AF;"></div>学习 <span style="margin-left:auto;font-size:10px;">3</span>
+          </div>
+          <div class="mock-sidebar-item">
+            <div class="mock-sidebar-dot" style="background:#3B82F6;"></div>生活 <span style="margin-left:auto;font-size:10px;">2</span>
+          </div>
+        </div>
+        <div class="mock-main">
+          <div style="font-size:14px;color:#fff;font-weight:700;margin-bottom:14px;">今天</div>
+          <div class="mock-task">
+            <div class="mock-checkbox"></div>
+            <div class="mock-task-text" style="width:70%;"></div>
+            <div class="mock-badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">高</div>
+          </div>
+          <div class="mock-task">
+            <div class="mock-checkbox"></div>
+            <div class="mock-task-text" style="width:85%;"></div>
+            <div class="mock-badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;">中</div>
+          </div>
+          <div class="mock-task">
+            <div class="mock-checkbox"></div>
+            <div class="mock-task-text" style="width:55%;"></div>
+            <div class="mock-badge" style="background:rgba(156,163,175,0.15);color:#9CA3AF;">低</div>
+          </div>
+          <div class="mock-task">
+            <div class="mock-checkbox done">✓</div>
+            <div class="mock-task-text done" style="width:60%;"></div>
+            <div class="mock-badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">完成</div>
+          </div>
+          <div class="mock-task">
+            <div class="mock-checkbox done">✓</div>
+            <div class="mock-task-text done" style="width:45%;"></div>
+            <div class="mock-badge" style="background:rgba(34,197,94,0.15);color:#22C55E;">完成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cta-row">
+      <div class="tech-stack">
+        <span class="tech-item">React 18</span>
+        <span class="tech-item">TypeScript</span>
+        <span class="tech-item">Electron</span>
+        <span class="tech-item">Tailwind CSS</span>
+        <span class="tech-item">Radix UI</span>
+      </div>
+      <div class="cta">focusworkspace.app</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

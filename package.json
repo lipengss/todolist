@@ -38,6 +38,7 @@
     "electron": "33.4.11",
     "electron-builder": "^25.1.8",
     "postcss": "^8.5.4",
+    "pptxgenjs": "^4.0.1",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
