@@ -365,6 +365,20 @@ export default function App() {
     updateTodo(id, { deletedAt: undefined });
   };
 
+  const handleQuickAddTodo = (text: string, date: string) => {
+    const todo: Todo = {
+      id: crypto.randomUUID(),
+      text,
+      completed: false,
+      starred: false,
+      priority: "medium",
+      category: storedCategories[0]?.id ?? "work",
+      dueDate: date,
+      createdAt: getToday(),
+    };
+    setTodos((currentTodos) => [todo, ...currentTodos]);
+  };
+
   const titles: Record<FilterType, string> = {
     calendar: "日历",
     today: "今天",
@@ -417,6 +431,7 @@ export default function App() {
             categoryStyles={CATEGORY_STYLES}
             onOpenDetail={setSelectedTodoId}
             onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+            onAddTodo={handleQuickAddTodo}
           />
         ) : (
           <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
