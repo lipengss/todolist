@@ -9,6 +9,7 @@ import { TodoDetailPanel } from "./components/TodoDetailPanel";
 import { TodoItem } from "./components/TodoItem";
 import { Category, DueFilter, FilterType, Priority, PriorityFilter, Todo } from "./components/types";
 import { DatePicker } from "./components/ui/DatePicker";
+import { FormField, FormPrimitive } from "./components/ui/Form";
 import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
@@ -495,43 +496,37 @@ export default function App() {
       </div>
 
       <Modal open={isCreateOpen} title="新建任务" onOpenChange={setCreateOpen}>
-        <form onSubmit={handleCreateTodo} className="space-y-5">
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block mb-2">任务名称</label>
+        <FormPrimitive.Form onSubmit={handleCreateTodo} className="space-y-5">
+          <FormField name="text" label="任务名称">
             <input
               autoFocus
+              required
               value={newTodo.text}
               onChange={(event) => setNewTodo((current) => ({ ...current, text: event.target.value }))}
               placeholder="输入任务名称..."
               className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30 placeholder:text-muted-foreground"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground flex items-center gap-2">
-                截止日期
-              </label>
+            <FormField name="dueDate" label="截止日期">
               <DatePicker
                 value={newTodo.dueDate}
                 onChange={(value) => setNewTodo((current) => ({ ...current, dueDate: value }))}
               />
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground flex items-center gap-2">
-                时间
-              </label>
+            <FormField name="dueTime" label="时间">
               <TimePicker
                 value={newTodo.dueTime}
                 onChange={(value) => setNewTodo((current) => ({ ...current, dueTime: value }))}
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block mb-2">分类</label>
-            <div className="grid grid-cols-2 gap-2">
+            <span className="text-sm text-muted-foreground">分类</span>
+            <div className="grid grid-cols-2 gap-2 mt-2">
               {storedCategories.map((category) => (
                 <button
                   key={category.id}
@@ -551,10 +546,8 @@ export default function App() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-muted-foreground flex items-center gap-2">
-              优先级
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+            <span className="text-sm text-muted-foreground">优先级</span>
+            <div className="grid grid-cols-3 gap-2 mt-2">
               {([
                 { value: "low", label: "低", color: "bg-chart-4", text: "text-chart-4" },
                 { value: "medium", label: "中", color: "bg-chart-1", text: "text-chart-1" },
@@ -584,15 +577,17 @@ export default function App() {
             >
               取消
             </button>
-            <button
-              type="submit"
-              disabled={!newTodo.text.trim()}
-              className="flex-1 h-[45px] rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
-            >
-              创建任务
-            </button>
+            <FormPrimitive.Submit asChild>
+              <button
+                type="submit"
+                disabled={!newTodo.text.trim()}
+                className="flex-1 h-[45px] rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                创建任务
+              </button>
+            </FormPrimitive.Submit>
           </div>
-        </form>
+        </FormPrimitive.Form>
       </Modal>
 
       <Modal
@@ -702,18 +697,25 @@ export default function App() {
       <ShortcutHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <Modal open={isSettingsOpen} title="通知设置" maxWidth="max-w-sm" onOpenChange={setSettingsOpen}>
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground block mb-2">提前提醒时间（分钟）</label>
+        <FormPrimitive.Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateSettings(settingsForm);
+            setSettingsOpen(false);
+          }}
+          className="space-y-5"
+        >
+          <FormField name="reminderMinutes" label="提前提醒时间（分钟）">
             <input
               type="number"
+              required
               min={1}
               max={120}
               value={settingsForm.reminderMinutes}
               onChange={(e) => setSettingsForm((s) => ({ ...s, reminderMinutes: Number(e.target.value) || 1 }))}
               className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
             />
-          </div>
+          </FormField>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-foreground">重复提醒</span>
@@ -733,17 +735,17 @@ export default function App() {
           </div>
 
           {settingsForm.repeatEnabled && (
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground block mb-2">重复间隔（分钟）</label>
+            <FormField name="repeatIntervalMinutes" label="重复间隔（分钟）">
               <input
                 type="number"
+                required
                 min={1}
                 max={60}
                 value={settingsForm.repeatIntervalMinutes}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, repeatIntervalMinutes: Number(e.target.value) || 1 }))}
                 className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
               />
-            </div>
+            </FormField>
           )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
@@ -754,18 +756,16 @@ export default function App() {
             >
               取消
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                updateSettings(settingsForm);
-                setSettingsOpen(false);
-              }}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm"
-            >
-              保存
-            </button>
+            <FormPrimitive.Submit asChild>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm"
+              >
+                保存
+              </button>
+            </FormPrimitive.Submit>
           </div>
-        </div>
+        </FormPrimitive.Form>
       </Modal>
     </div>
   );

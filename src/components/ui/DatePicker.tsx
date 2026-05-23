@@ -1,4 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
+import { zhCN } from "date-fns/locale";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 
@@ -38,6 +39,7 @@ export function DatePicker({ value, placeholder = "选择日期...", onChange }:
         >
           <DayPicker
             mode="single"
+            locale={zhCN}
             selected={selected}
             onSelect={(day) => {
               if (day) {
