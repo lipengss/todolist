@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     strategy:
@@ -24,11 +27,15 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-xcb-dev
+
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm build
 
-      - name: Build Electron app
+      - name: Build and publish Electron app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --publish always
+        run: pnpm exec electron-builder --publish always
