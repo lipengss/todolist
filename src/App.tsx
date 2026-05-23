@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 
+import { CalendarView } from "./components/CalendarView";
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
 import { StatsCards } from "./components/StatsCards";
@@ -11,6 +12,8 @@ import { DatePicker } from "./components/ui/DatePicker";
 import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 
 type StoredCategory = Omit<Category, "count">;
 
@@ -163,6 +166,7 @@ export default function App() {
   const [statCardFilter, setStatCardFilter] = useState<StatCardFilter | null>(null);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isCategoryOpen, setCategoryOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<StoredCategory | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("bg-chart-5");
   const [newTodo, setNewTodo] = useState<NewTodoForm>(createEmptyTodoForm);
@@ -222,6 +226,45 @@ export default function App() {
       return { high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority];
     });
   }, [activeTodos, categoryFilter, dueFilter, filter, priorityFilter, searchQuery, statCardFilter, trashedTodos]);
+
+  const isAnyModalOpen = isCreateOpen || isCategoryOpen || editingCategory !== null || selectedTodoId !== null;
+
+  const getSearchInput = () => document.getElementById("search-input") as HTMLInputElement | null;
+
+  const {
+    focusedIndex,
+    helpOpen,
+    setHelpOpen,
+    resetFocus,
+  } = useKeyboardShortcuts({
+    filter,
+    filteredTodoCount: filteredTodos.length,
+    isAnyModalOpen,
+    onCreateTodo: () => setCreateOpen(true),
+    onToggleFocused: (index) => {
+      const todo = filteredTodos[index];
+      if (todo) updateTodo(todo.id, { completed: !todo.completed });
+    },
+    onOpenFocused: (index) => {
+      const todo = filteredTodos[index];
+      if (todo) setSelectedTodoId(todo.id);
+    },
+    onDeleteFocused: (index) => {
+      const todo = filteredTodos[index];
+      if (todo) handleDeleteTodo(todo.id);
+    },
+    onCloseAll: () => {
+      setSelectedTodoId(null);
+      setCreateOpen(false);
+      setEditingCategory(null);
+      setCategoryOpen(false);
+    },
+    searchInputRef: { current: getSearchInput() },
+  });
+
+  useEffect(() => {
+    resetFocus();
+  }, [filter, categoryFilter, searchQuery, priorityFilter, dueFilter, resetFocus]);
 
   const stats = useMemo(() => {
     const unfinishedTodos = activeTodos.filter((todo) => !todo.completed);
@@ -289,6 +332,30 @@ export default function App() {
     setNewTodo((current) => ({ ...current, category: category.id }));
   };
 
+  const openEditCategory = (id: string, name: string, color: string) => {
+    setEditingCategory({ id, name, color });
+    setNewCategoryName(name);
+    setNewCategoryColor(color);
+  };
+
+  const handleEditCategory = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = newCategoryName.trim();
+    if (!name || !editingCategory) return;
+
+    setStoredCategories((current) =>
+      current.map((cat) => (cat.id === editingCategory.id ? { ...cat, name, color: newCategoryColor } : cat)),
+    );
+    setEditingCategory(null);
+    setNewCategoryName("");
+    setNewCategoryColor("bg-chart-5");
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    setStoredCategories((current) => current.filter((cat) => cat.id !== id));
+    if (categoryFilter === id) setCategoryFilter("all");
+  };
+
   const handleDeleteTodo = (id: string) => {
     updateTodo(id, { deletedAt: new Date().toISOString() });
     if (selectedTodoId === id) setSelectedTodoId(null);
@@ -299,6 +366,7 @@ export default function App() {
   };
 
   const titles: Record<FilterType, string> = {
+    calendar: "日历",
     today: "今天",
     planned: "计划",
     inbox: "收集箱",
@@ -322,6 +390,8 @@ export default function App() {
         onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
         onCreateTodo={() => setCreateOpen(true)}
         onCreateCategory={() => setCategoryOpen(true)}
+        onEditCategory={openEditCategory}
+        onDeleteCategory={handleDeleteCategory}
         categories={categories}
         stats={stats}
       />
@@ -340,53 +410,64 @@ export default function App() {
           />
         </div>
 
-        <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
-          <main className="max-w-6xl mx-auto space-y-6">
-            <StatsCards
-              stats={stats}
-              activeCard={statCardFilter}
-              onCardClick={(key) => setStatCardFilter((prev) => (prev === key ? null : key))}
-            />
+        {filter === "calendar" ? (
+          <CalendarView
+            todos={activeTodos}
+            categories={categoryById}
+            categoryStyles={CATEGORY_STYLES}
+            onOpenDetail={setSelectedTodoId}
+            onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+          />
+        ) : (
+          <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
+            <main className="max-w-6xl mx-auto space-y-6">
+              <StatsCards
+                stats={stats}
+                activeCard={statCardFilter}
+                onCardClick={(key) => setStatCardFilter((prev) => (prev === key ? null : key))}
+              />
 
-            {filter === "trash" && trashedTodos.length > 0 && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setTodos((currentTodos) => currentTodos.filter((todo) => !todo.deletedAt))}
-                  className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
-                >
-                  清空回收站
-                </button>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {filteredTodos.length === 0 ? (
-                <div className="text-center py-16 text-muted-foreground">
-                  <p>{filter === "trash" ? "垃圾箱为空" : "暂无任务"}</p>
+              {filter === "trash" && trashedTodos.length > 0 && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setTodos((currentTodos) => currentTodos.filter((todo) => !todo.deletedAt))}
+                    className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    清空回收站
+                  </button>
                 </div>
-              ) : (
-                filteredTodos.map((todo) => {
-                  const category = categoryById.get(todo.category);
-                  return (
-                    <TodoItem
-                      key={todo.id}
-                      todo={todo}
-                      categoryName={category?.name ?? "未分类"}
-                      categoryColor={CATEGORY_STYLES[category?.color ?? ""] ?? "bg-muted text-muted-foreground border-border"}
-                      isTrashView={filter === "trash"}
-                      onOpenDetail={setSelectedTodoId}
-                      onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
-                      onToggleStar={(id) => updateTodo(id, { starred: !todos.find((todo) => todo.id === id)?.starred })}
-                      onDelete={handleDeleteTodo}
-                      onRestore={handleRestoreTodo}
-                    />
-                  );
-                })
               )}
-            </div>
-          </main>
-        </ScrollArea>
+
+              <div className="space-y-3">
+                {filteredTodos.length === 0 ? (
+                  <div className="text-center py-16 text-muted-foreground">
+                    <p>{filter === "trash" ? "垃圾箱为空" : "暂无任务"}</p>
+                  </div>
+                ) : (
+                  filteredTodos.map((todo, index) => {
+                    const category = categoryById.get(todo.category);
+                    return (
+                      <TodoItem
+                        key={todo.id}
+                        todo={todo}
+                        focused={index === focusedIndex}
+                        categoryName={category?.name ?? "未分类"}
+                        categoryColor={CATEGORY_STYLES[category?.color ?? ""] ?? "bg-muted text-muted-foreground border-border"}
+                        isTrashView={filter === "trash"}
+                        onOpenDetail={setSelectedTodoId}
+                        onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+                        onToggleStar={(id) => updateTodo(id, { starred: !todos.find((todo) => todo.id === id)?.starred })}
+                        onDelete={handleDeleteTodo}
+                        onRestore={handleRestoreTodo}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </main>
+          </ScrollArea>
+        )}
       </div>
 
       <Modal open={isCreateOpen} title="新建任务" onOpenChange={setCreateOpen}>
@@ -535,6 +616,51 @@ export default function App() {
         </form>
       </Modal>
 
+      <Modal
+        open={editingCategory !== null}
+        title="编辑任务分类"
+        description="修改分类名称或颜色。"
+        maxWidth="max-w-md"
+        onOpenChange={(open) => { if (!open) setEditingCategory(null); }}
+      >
+        <form onSubmit={handleEditCategory} className="space-y-5">
+          <label className="block space-y-2">
+            <span className="text-sm text-muted-foreground block mb-2">分类名称</span>
+            <input
+              autoFocus
+              value={newCategoryName}
+              onChange={(event) => setNewCategoryName(event.target.value)}
+              placeholder="例如：项目、家庭、灵感"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+            />
+          </label>
+
+          <div className="space-y-2">
+            <span className="text-sm text-muted-foreground block mb-2">颜色</span>
+            <div className="flex gap-2">
+              {CATEGORY_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setNewCategoryColor(color)}
+                  className={`w-8 h-8 rounded-full ${color} ${newCategoryColor === color ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : ""}`}
+                  aria-label={`选择颜色 ${color}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setEditingCategory(null)} className="px-4 py-2 rounded-lg border border-border hover:bg-accent">
+              取消
+            </button>
+            <button type="submit" disabled={!newCategoryName.trim()} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50">
+              保存修改
+            </button>
+          </div>
+        </form>
+      </Modal>
+
       {selectedTodo && (
         <TodoDetailPanel
           todo={selectedTodo}
@@ -549,6 +675,7 @@ export default function App() {
           onRestore={handleRestoreTodo}
         />
       )}
+      <ShortcutHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
