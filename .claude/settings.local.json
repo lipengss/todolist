@@ -40,7 +40,9 @@
       "PowerShell(pip install *)",
       "PowerShell(python -m pip install python-pptx 2>&1)",
       "PowerShell(node scripts/generate-ppt.mjs 2>&1)",
-      "PowerShell(Start-Process \"E:\\\\项目测试\\\\todo-desktop\\\\poster.html\")"
+      "PowerShell(Start-Process \"E:\\\\项目测试\\\\todo-desktop\\\\poster.html\")",
+      "PowerShell(git tag -l; \"---\"; node -e \"console.log\\(require\\('./package.json'\\).version\\)\")",
+      "PowerShell(New-Item *)"
     ]
   }
 }
