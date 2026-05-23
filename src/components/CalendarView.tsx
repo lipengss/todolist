@@ -93,11 +93,25 @@ export function CalendarView({
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const selectedTodos = selectedDateStr ? calendarData.get(selectedDateStr) ?? [] : [];
 
+  const clearQuickAddStates = () => {
+    setInlineAddDate(null);
+    setInlineAddText("");
+    setPanelAddActive(false);
+    setPanelAddText("");
+  };
+
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setPanelAddActive(false);
+    setPanelAddText("");
+  };
+
   const goToPrevMonth = () => {
     const date = subMonths(new Date(viewYear, viewMonth), 1);
     setViewYear(date.getFullYear());
     setViewMonth(date.getMonth());
     setSelectedDate(null);
+    clearQuickAddStates();
   };
 
   const goToNextMonth = () => {
@@ -105,12 +119,14 @@ export function CalendarView({
     setViewYear(date.getFullYear());
     setViewMonth(date.getMonth());
     setSelectedDate(null);
+    clearQuickAddStates();
   };
 
   const goToToday = () => {
     setViewYear(today.getFullYear());
     setViewMonth(today.getMonth());
     setSelectedDate(today);
+    clearQuickAddStates();
   };
 
   const handleInlineAdd = () => {
@@ -207,7 +223,7 @@ export function CalendarView({
             return (
               <button
                 key={dateStr}
-                onClick={() => setSelectedDate(date)}
+                onClick={() => handleSelectDate(date)}
                 onDoubleClick={() => handleCellDoubleClick(dateStr)}
                 onMouseEnter={() => setHoveredDate(dateStr)}
                 onMouseLeave={() => setHoveredDate(null)}
