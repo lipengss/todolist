@@ -13,6 +13,7 @@ import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 
 type StoredCategory = Omit<Category, "count">;
@@ -265,6 +266,10 @@ export default function App() {
   useEffect(() => {
     resetFocus();
   }, [filter, categoryFilter, searchQuery, priorityFilter, dueFilter, resetFocus]);
+
+  useNotificationScheduler(activeTodos, (todoId) => {
+    setSelectedTodoId(todoId);
+  });
 
   const stats = useMemo(() => {
     const unfinishedTodos = activeTodos.filter((todo) => !todo.completed);
