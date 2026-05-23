@@ -19,7 +19,6 @@ function FormField({
         </FormPrimitive.Label>
       </div>
       <FormPrimitive.Control asChild>{children}</FormPrimitive.Control>
-      <FormPrimitive.Message className="text-xs text-destructive" />
     </FormPrimitive.Field>
   );
 }
