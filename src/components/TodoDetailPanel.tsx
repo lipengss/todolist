@@ -1,5 +1,5 @@
 import * as Checkbox from "@radix-ui/react-checkbox";
-import { CalendarDays, Check, Clock, FileText, Flag, Plus, Trash2, X } from "lucide-react";
+import { Check, FileText, Plus, Trash2, X } from "lucide-react";
 import { Category, Priority, Todo } from "./types";
 import { useState } from "react";
 import { DatePicker } from "./ui/DatePicker";
@@ -31,8 +31,6 @@ export function TodoDetailPanel({
   const [text, setText] = useState(todo.text);
   const [newSubtask, setNewSubtask] = useState("");
   const [note, setNote] = useState(todo.note ?? "");
-
-  const category = categories.find((c) => c.id === todo.category);
 
   const handleSaveText = () => {
     const trimmed = text.trim();
@@ -99,7 +97,6 @@ export function TodoDetailPanel({
           {/* Meta info with icons */}
           <section className="space-y-3">
             <div className="flex items-center gap-3">
-              <CalendarDays className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <div className="flex-1">
                 <DatePicker
                   value={todo.dueDate ?? ""}
@@ -109,7 +106,6 @@ export function TodoDetailPanel({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <div className="flex-1">
                 <TimePicker
                   value={todo.dueTime ?? ""}
@@ -119,7 +115,6 @@ export function TodoDetailPanel({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Flag className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <div className="flex gap-1.5">
                 {([
                   { value: "low" as Priority, label: "低", color: "bg-chart-4", text: "text-chart-4" },
@@ -130,20 +125,18 @@ export function TodoDetailPanel({
                     key={p.value}
                     type="button"
                     onClick={() => onUpdate(todo.id, { priority: p.value })}
-                    className={`h-[35px] px-3 rounded-lg border text-sm transition-colors flex items-center gap-1.5 ${
+                    className={`h-[30px] px-3 rounded-full text-sm font-medium transition-colors ${
                       todo.priority === p.value
-                        ? `${p.color} text-white border-transparent`
-                        : `bg-card border-border ${p.text} hover:border-current`
+                        ? `${p.color} text-white`
+                        : `${p.color}/15 ${p.text} hover:${p.color}/25`
                     }`}
                   >
-                    <div className={`w-2 h-2 rounded-full ${todo.priority === p.value ? "bg-white" : p.color}`} />
                     {p.label}
                   </button>
                 ))}
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className={`w-3 h-3 rounded-full mt-2.5 ${category?.color ?? "bg-muted"} flex-shrink-0`} />
               <div className="flex flex-wrap gap-1.5">
                 {categories.map((cat) => (
                   <button

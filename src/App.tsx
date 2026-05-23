@@ -552,21 +552,20 @@ export default function App() {
             </label>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { value: "low", label: "低", color: "bg-chart-4", text: "text-chart-4", ring: "ring-chart-4/30" },
-                { value: "medium", label: "中", color: "bg-chart-1", text: "text-chart-1", ring: "ring-chart-1/30" },
-                { value: "high", label: "高", color: "bg-chart-2", text: "text-chart-2", ring: "ring-chart-2/30" },
+                { value: "low", label: "低", color: "bg-chart-4", text: "text-chart-4" },
+                { value: "medium", label: "中", color: "bg-chart-1", text: "text-chart-1" },
+                { value: "high", label: "高", color: "bg-chart-2", text: "text-chart-2" },
               ] as const).map((p) => (
                 <button
                   key={p.value}
                   type="button"
                   onClick={() => setNewTodo((current) => ({ ...current, priority: p.value as Priority }))}
-                  className={`h-[45px] rounded-lg border text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  className={`h-[45px] rounded-full text-sm font-medium transition-colors ${
                     newTodo.priority === p.value
-                      ? `${p.color} text-white border-transparent`
-                      : `bg-card border-border ${p.text} hover:border-current`
+                      ? `${p.color} text-white`
+                      : `${p.color}/15 ${p.text} hover:${p.color}/25`
                   }`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${newTodo.priority === p.value ? "bg-white" : p.color}`} />
                   {p.label}
                 </button>
               ))}
