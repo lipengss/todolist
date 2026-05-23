@@ -65,6 +65,14 @@
     "linux": {
       "target": "AppImage",
       "icon": "public/logo.png"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lipengss/todolist.git"
   }
 }
