@@ -2,10 +2,14 @@ const SETTINGS_KEY = "focusworkspace.settings.v1";
 
 export interface Settings {
   reminderMinutes: number;
+  repeatEnabled: boolean;
+  repeatIntervalMinutes: number;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   reminderMinutes: 15,
+  repeatEnabled: true,
+  repeatIntervalMinutes: 5,
 };
 
 function readSettings(): Settings {

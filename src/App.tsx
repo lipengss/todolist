@@ -14,6 +14,7 @@ import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
+import { getSettings, updateSettings } from "./hooks/useSettings";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 
 type StoredCategory = Omit<Category, "count">;
@@ -172,6 +173,8 @@ export default function App() {
   const [newCategoryColor, setNewCategoryColor] = useState("bg-chart-5");
   const [newTodo, setNewTodo] = useState<NewTodoForm>(createEmptyTodoForm);
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
+  const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [settingsForm, setSettingsForm] = useState(getSettings);
 
   useEffect(() => {
     window.localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todos));
@@ -228,7 +231,7 @@ export default function App() {
     });
   }, [activeTodos, categoryFilter, dueFilter, filter, priorityFilter, searchQuery, statCardFilter, trashedTodos]);
 
-  const isAnyModalOpen = isCreateOpen || isCategoryOpen || editingCategory !== null || selectedTodoId !== null;
+  const isAnyModalOpen = isCreateOpen || isCategoryOpen || editingCategory !== null || selectedTodoId !== null || isSettingsOpen;
 
   const getSearchInput = () => document.getElementById("search-input") as HTMLInputElement | null;
 
@@ -411,6 +414,7 @@ export default function App() {
         onCreateCategory={() => setCategoryOpen(true)}
         onEditCategory={openEditCategory}
         onDeleteCategory={handleDeleteCategory}
+        onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}
         categories={categories}
         stats={stats}
       />
@@ -696,6 +700,73 @@ export default function App() {
         />
       )}
       <ShortcutHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      <Modal open={isSettingsOpen} title="通知设置" maxWidth="max-w-sm" onOpenChange={setSettingsOpen}>
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block mb-2">提前提醒时间（分钟）</label>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={settingsForm.reminderMinutes}
+              onChange={(e) => setSettingsForm((s) => ({ ...s, reminderMinutes: Number(e.target.value) || 1 }))}
+              className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-foreground">重复提醒</span>
+            <button
+              type="button"
+              onClick={() => setSettingsForm((s) => ({ ...s, repeatEnabled: !s.repeatEnabled }))}
+              className={`w-12 h-7 rounded-full transition-colors relative ${
+                settingsForm.repeatEnabled ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform ${
+                  settingsForm.repeatEnabled ? "translate-x-6 left-0.5" : "left-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {settingsForm.repeatEnabled && (
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground block mb-2">重复间隔（分钟）</label>
+              <input
+                type="number"
+                min={1}
+                max={60}
+                value={settingsForm.repeatIntervalMinutes}
+                onChange={(e) => setSettingsForm((s) => ({ ...s, repeatIntervalMinutes: Number(e.target.value) || 1 }))}
+                className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(false)}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-accent text-sm"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings(settingsForm);
+                setSettingsOpen(false);
+              }}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm"
+            >
+              保存
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
