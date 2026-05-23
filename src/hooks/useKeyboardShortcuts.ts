@@ -20,13 +20,16 @@ export function useKeyboardShortcuts(ctx: ShortcutContext) {
   const resetFocus = useCallback(() => setFocusedIndex(-1), []);
 
   useEffect(() => {
-    const isInputFocused =
-      document.activeElement instanceof HTMLInputElement ||
-      document.activeElement instanceof HTMLTextAreaElement;
+    function isInputFocused() {
+      return (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement
+      );
+    }
 
     function handleKeyDown(e: KeyboardEvent) {
       // ? key — toggle help panel (global, but not in inputs)
-      if (e.key === "?" && !e.ctrlKey && !e.metaKey && !isInputFocused) {
+      if (e.key === "?" && !e.ctrlKey && !e.metaKey && !isInputFocused()) {
         e.preventDefault();
         setHelpOpen((prev) => !prev);
         return;
@@ -49,14 +52,14 @@ export function useKeyboardShortcuts(ctx: ShortcutContext) {
       if (helpOpen) return;
 
       // Ctrl+N — create todo (global, except in inputs)
-      if (e.ctrlKey && e.key === "n") {
+      if (e.ctrlKey && e.key === "n" && !isInputFocused()) {
         e.preventDefault();
         ctx.onCreateTodo();
         return;
       }
 
       // Ctrl+F — focus search (global, except in inputs)
-      if (e.ctrlKey && e.key === "f") {
+      if (e.ctrlKey && e.key === "f" && !isInputFocused()) {
         e.preventDefault();
         ctx.searchInputRef.current?.focus();
         return;
