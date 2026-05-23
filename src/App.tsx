@@ -11,6 +11,7 @@ import { Category, DueFilter, FilterType, Priority, PriorityFilter, Todo } from 
 import { DatePicker } from "./components/ui/DatePicker";
 import { FormField, FormPrimitive } from "./components/ui/Form";
 import { Input } from "./components/ui/Input";
+import { InputNumber } from "./components/ui/InputNumber";
 import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
@@ -707,17 +708,16 @@ export default function App() {
           }}
           className="space-y-5"
         >
-          <FormField name="reminderMinutes" label="提前提醒时间（分钟）">
-            <Input
-              type="number"
-              required
+          <div className="space-y-2">
+            <span className="text-sm text-muted-foreground">提前提醒时间（分钟）</span>
+            <InputNumber
+              value={settingsForm.reminderMinutes}
               min={1}
               max={120}
-              value={settingsForm.reminderMinutes}
-              onChange={(e) => setSettingsForm((s) => ({ ...s, reminderMinutes: Number(e.target.value) || 1 }))}
-              className="h-[45px]"
+              onChange={(v) => setSettingsForm((s) => ({ ...s, reminderMinutes: v }))}
+              className="h-[45px] w-full"
             />
-          </FormField>
+          </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-foreground">重复提醒</span>
@@ -737,17 +737,16 @@ export default function App() {
           </div>
 
           {settingsForm.repeatEnabled && (
-            <FormField name="repeatIntervalMinutes" label="重复间隔（分钟）">
-              <Input
-                type="number"
-                required
+            <div className="space-y-2">
+              <span className="text-sm text-muted-foreground">重复间隔（分钟）</span>
+              <InputNumber
+                value={settingsForm.repeatIntervalMinutes}
                 min={1}
                 max={60}
-                value={settingsForm.repeatIntervalMinutes}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, repeatIntervalMinutes: Number(e.target.value) || 1 }))}
-                className="h-[45px]"
+                onChange={(v) => setSettingsForm((s) => ({ ...s, repeatIntervalMinutes: v }))}
+                className="h-[45px] w-full"
               />
-            </FormField>
+            </div>
           )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
