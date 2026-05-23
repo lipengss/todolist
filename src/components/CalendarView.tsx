@@ -359,13 +359,13 @@ export function CalendarView({
                             </svg>
                           )}
                         </div>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 overflow-hidden">
                           <p
                             className={`text-sm truncate ${
                               todo.completed ? "line-through text-muted-foreground" : "text-foreground"
                             }`}
                           >
-                            {todo.text}
+                            {todo.text}xx
                           </p>
                           <div className="flex items-center gap-2 mt-1.5">
                             {todo.dueTime && (
