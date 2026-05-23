@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "mcp__figma__whoami",
-      "PowerShell(curl *)"
+      "PowerShell(curl *)",
+      "mcp__figma__get_design_context",
+      "PowerShell(npm install *)",
+      "PowerShell(npm *)",
+      "PowerShell(pnpm install *)",
+      "PowerShell(pnpm run *)",
+      "mcp__figma__generate_figma_design",
+      "PowerShell($response = Invoke-WebRequest -Uri \"http://localhost:5174/\" -UseBasicParsing; $response.StatusCode; \\($response.Content -match \"react-day-picker\"\\); \\($response.Content -match \"DatePicker\"\\); Write-Output \"Status: $\\($response.StatusCode\\)\"; Write-Output \"Content-Length: $\\($response.Content.Length\\)\")",
+      "PowerShell(npx --yes puppeteer --version 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files \\(x86\\)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe\" --headless=new --disable-gpu --screenshot=\"E:\\\\项目测试\\\\todo-desktop\\\\screenshot-test2.png\" --window-size=1280,900 --no-first-run --no-default-browser-check \"http://localhost:5174/\" 2>$null; Start-Sleep -Seconds 6; Get-ChildItem \"E:\\\\项目测试\\\\todo-desktop\\\\screenshot-test2.png\" -ErrorAction SilentlyContinue | Select-Object Name, Length)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -Command \"Add-MpPreference -ExclusionPath `\"E:\\\\项目测试\\\\todo-desktop`\"; Write-Host 排除项添加成功; Start-Sleep 2\"' -Wait; Write-Output \"Done\")"
     ]
   }
 }

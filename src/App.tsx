@@ -1,13 +1,16 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+
+
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
 import { StatsCards } from "./components/StatsCards";
 import { TodoDetailPanel } from "./components/TodoDetailPanel";
 import { TodoItem } from "./components/TodoItem";
 import { Category, DueFilter, FilterType, Priority, PriorityFilter, Todo } from "./components/types";
+import { DatePicker } from "./components/ui/DatePicker";
 import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
-import { SelectField } from "./components/ui/SelectField";
+import { TimePicker } from "./components/ui/TimePicker";
 
 type StoredCategory = Omit<Category, "count">;
 
@@ -34,7 +37,7 @@ const getToday = () => new Date().toISOString().split("T")[0];
 const INITIAL_TODOS: Todo[] = [
   {
     id: "1",
-    text: "完成产品设计流程",
+    text: "完成产品设计稿",
     note: "检查任务详情、分类筛选和桌面端保存体验。",
     completed: false,
     starred: true,
@@ -42,33 +45,15 @@ const INITIAL_TODOS: Todo[] = [
     category: "work",
     dueDate: getToday(),
     dueTime: "14:00",
-    subtasks: { total: 3, completed: 1 },
+    subtasks: [
+      { id: "s1", text: "设计首页", completed: true },
+      { id: "s2", text: "设计详情页", completed: false },
+      { id: "s3", text: "设计用户中心", completed: false },
+    ],
     createdAt: getToday(),
   },
   {
     id: "2",
-    text: "整理桌面和文件",
-    completed: true,
-    starred: false,
-    priority: "low",
-    category: "life",
-    dueDate: getToday(),
-    dueTime: "10:30",
-    createdAt: getToday(),
-  },
-  {
-    id: "3",
-    text: "购买日常用品",
-    completed: true,
-    starred: false,
-    priority: "low",
-    category: "life",
-    dueDate: getToday(),
-    dueTime: "11:00",
-    createdAt: getToday(),
-  },
-  {
-    id: "4",
     text: "回复客户邮件",
     completed: false,
     starred: false,
@@ -79,7 +64,19 @@ const INITIAL_TODOS: Todo[] = [
     createdAt: getToday(),
   },
   {
-    id: "5",
+    id: "3",
+    text: "阅读《深度工作》第三章",
+    completed: false,
+    starred: false,
+    priority: "medium",
+    category: "study",
+    dueDate: getToday(),
+    dueTime: "20:00",
+    subtasks: [{ id: "s4", text: "完成章节练习", completed: false }],
+    createdAt: getToday(),
+  },
+  {
+    id: "4",
     text: "健身 30 分钟",
     completed: false,
     starred: false,
@@ -90,15 +87,25 @@ const INITIAL_TODOS: Todo[] = [
     createdAt: getToday(),
   },
   {
-    id: "6",
-    text: "阅读《深度工作》第三章",
-    completed: false,
+    id: "5",
+    text: "整理桌面和文件",
+    completed: true,
     starred: false,
-    priority: "medium",
-    category: "study",
+    priority: "low",
+    category: "life",
     dueDate: getToday(),
-    dueTime: "20:00",
-    subtasks: { total: 1, completed: 0 },
+    dueTime: "10:30",
+    createdAt: getToday(),
+  },
+  {
+    id: "6",
+    text: "购买日常用品",
+    completed: true,
+    starred: false,
+    priority: "low",
+    category: "life",
+    dueDate: getToday(),
+    dueTime: "11:00",
     createdAt: getToday(),
   },
 ];
@@ -146,11 +153,14 @@ export default function App() {
   const [storedCategories, setStoredCategories] = useState<StoredCategory[]>(() =>
     readJsonArray<StoredCategory>(CATEGORIES_STORAGE_KEY, DEFAULT_CATEGORIES),
   );
+  type StatCardFilter = "pending" | "highPriority" | "dueSoon" | "completed";
+
   const [filter, setFilter] = useState<FilterType>("today");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [dueFilter, setDueFilter] = useState<DueFilter>("all");
+  const [statCardFilter, setStatCardFilter] = useState<StatCardFilter | null>(null);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isCategoryOpen, setCategoryOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -185,10 +195,18 @@ export default function App() {
     const today = getToday();
     let result = filter === "trash" ? trashedTodos : activeTodos;
 
-    if (filter === "today") result = result.filter((todo) => !todo.completed && (todo.createdAt === today || todo.dueDate === today));
-    if (filter === "completed") result = result.filter((todo) => todo.completed);
-    if (filter === "inbox") result = result.filter((todo) => !todo.completed && !todo.dueDate);
-    if (filter === "planned") result = result.filter((todo) => !todo.completed && Boolean(todo.dueDate));
+    if (statCardFilter) {
+      if (statCardFilter === "pending") result = result.filter((todo) => !todo.completed);
+      if (statCardFilter === "highPriority") result = result.filter((todo) => !todo.completed && todo.priority === "high");
+      if (statCardFilter === "dueSoon") result = result.filter((todo) => !todo.completed && isDueSoon(todo));
+      if (statCardFilter === "completed") result = result.filter((todo) => todo.completed);
+    } else {
+      if (filter === "today") result = result.filter((todo) => !todo.completed && (todo.createdAt === today || todo.dueDate === today));
+      if (filter === "completed") result = result.filter((todo) => todo.completed);
+      if (filter === "inbox") result = result.filter((todo) => !todo.completed && todo.starred);
+      if (filter === "planned") result = result.filter((todo) => !todo.completed && Boolean(todo.dueDate));
+    }
+
     if (categoryFilter !== "all" && filter !== "trash") result = result.filter((todo) => todo.category === categoryFilter);
     if (priorityFilter !== "all") result = result.filter((todo) => todo.priority === priorityFilter);
     if (dueFilter === "today") result = result.filter((todo) => todo.dueDate === today);
@@ -203,7 +221,7 @@ export default function App() {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
       return { high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority];
     });
-  }, [activeTodos, categoryFilter, dueFilter, filter, priorityFilter, searchQuery, trashedTodos]);
+  }, [activeTodos, categoryFilter, dueFilter, filter, priorityFilter, searchQuery, statCardFilter, trashedTodos]);
 
   const stats = useMemo(() => {
     const unfinishedTodos = activeTodos.filter((todo) => !todo.completed);
@@ -214,9 +232,12 @@ export default function App() {
       completed: activeTodos.filter((todo) => todo.completed).length,
       today: unfinishedTodos.filter((todo) => todo.createdAt === getToday() || todo.dueDate === getToday()).length,
       planned: unfinishedTodos.filter((todo) => todo.dueDate).length,
-      inbox: unfinishedTodos.filter((todo) => !todo.dueDate).length,
+      inbox: unfinishedTodos.filter((todo) => todo.starred).length,
       all: activeTodos.length,
       trash: trashedTodos.length,
+      highPriorityCount: unfinishedTodos.filter((todo) => todo.priority === "high").length,
+      dueSoonCount: unfinishedTodos.filter(isDueSoon).length,
+      completedCount: activeTodos.filter((todo) => todo.completed).length,
     };
   }, [activeTodos, trashedTodos]);
 
@@ -283,7 +304,7 @@ export default function App() {
     inbox: "收集箱",
     all: "全部任务",
     completed: "已完成",
-    trash: "回收站",
+    trash: "垃圾箱",
   };
 
   const formattedDate = (() => {
@@ -296,9 +317,9 @@ export default function App() {
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
       <Sidebar
         activeFilter={filter}
-        onFilterChange={setFilter}
+        onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
         activeCategory={categoryFilter}
-        onCategoryChange={setCategoryFilter}
+        onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
         onCreateTodo={() => setCreateOpen(true)}
         onCreateCategory={() => setCategoryOpen(true)}
         categories={categories}
@@ -321,7 +342,11 @@ export default function App() {
 
         <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
           <main className="max-w-6xl mx-auto space-y-6">
-            <StatsCards stats={stats} />
+            <StatsCards
+              stats={stats}
+              activeCard={statCardFilter}
+              onCardClick={(key) => setStatCardFilter((prev) => (prev === key ? null : key))}
+            />
 
             {filter === "trash" && trashedTodos.length > 0 && (
               <div className="flex justify-end">
@@ -338,7 +363,7 @@ export default function App() {
             <div className="space-y-3">
               {filteredTodos.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">
-                  <p>{filter === "trash" ? "回收站为空" : "暂无任务"}</p>
+                  <p>{filter === "trash" ? "垃圾箱为空" : "暂无任务"}</p>
                 </div>
               ) : (
                 filteredTodos.map((todo) => {
@@ -364,85 +389,101 @@ export default function App() {
         </ScrollArea>
       </div>
 
-      <Modal open={isCreateOpen} title="新建任务" description="任务会自动保存到本地。" onOpenChange={setCreateOpen}>
+      <Modal open={isCreateOpen} title="新建任务" onOpenChange={setCreateOpen}>
         <form onSubmit={handleCreateTodo} className="space-y-5">
-          <label className="block space-y-2">
-            <span className="text-sm text-muted-foreground">任务内容</span>
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block mb-2">任务名称</label>
             <input
               autoFocus
               value={newTodo.text}
               onChange={(event) => setNewTodo((current) => ({ ...current, text: event.target.value }))}
-              placeholder="输入要完成的事情"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+              placeholder="输入任务名称..."
+              className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30 placeholder:text-muted-foreground"
             />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm text-muted-foreground">备注</span>
-            <textarea
-              value={newTodo.note}
-              onChange={(event) => setNewTodo((current) => ({ ...current, note: event.target.value }))}
-              placeholder="补充任务详情"
-              rows={3}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30 resize-none"
-            />
-          </label>
-
-          <div className="grid grid-cols-2 gap-4">
-            <label className="block space-y-2">
-              <span className="text-sm text-muted-foreground">分类</span>
-              <SelectField
-                value={newTodo.category}
-                onChange={(category) => setNewTodo((current) => ({ ...current, category }))}
-                ariaLabel="任务分类"
-                className="w-full bg-background"
-                options={storedCategories.map((category) => ({ value: category.id, label: category.name }))}
-              />
-            </label>
-
-            <label className="block space-y-2">
-              <span className="text-sm text-muted-foreground">优先级</span>
-              <SelectField<Priority>
-                value={newTodo.priority}
-                onChange={(priority) => setNewTodo((current) => ({ ...current, priority }))}
-                ariaLabel="任务优先级"
-                className="w-full bg-background"
-                options={[
-                  { value: "high", label: "高" },
-                  { value: "medium", label: "中" },
-                  { value: "low", label: "低" },
-                ]}
-              />
-            </label>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <label className="block space-y-2">
-              <span className="text-sm text-muted-foreground">截止日期</span>
-              <input
-                type="date"
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground flex items-center gap-2">
+                截止日期
+              </label>
+              <DatePicker
                 value={newTodo.dueDate}
-                onChange={(event) => setNewTodo((current) => ({ ...current, dueDate: event.target.value }))}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+                onChange={(value) => setNewTodo((current) => ({ ...current, dueDate: value }))}
               />
-            </label>
+            </div>
 
-            <label className="block space-y-2">
-              <span className="text-sm text-muted-foreground">时间</span>
-              <input
-                type="time"
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground flex items-center gap-2">
+                时间
+              </label>
+              <TimePicker
                 value={newTodo.dueTime}
-                onChange={(event) => setNewTodo((current) => ({ ...current, dueTime: event.target.value }))}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+                onChange={(value) => setNewTodo((current) => ({ ...current, dueTime: value }))}
               />
-            </label>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setCreateOpen(false)} className="px-4 py-2 rounded-lg border border-border hover:bg-accent">
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground block mb-2">分类</label>
+            <div className="grid grid-cols-2 gap-2">
+              {storedCategories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setNewTodo((current) => ({ ...current, category: category.id }))}
+                  className={`h-[45px] rounded-lg border text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                    newTodo.category === category.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${category.color}`} />
+                  {category.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground flex items-center gap-2">
+              优先级
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: "low", label: "低" },
+                { value: "medium", label: "中" },
+                { value: "high", label: "高" },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setNewTodo((current) => ({ ...current, priority: p.value as Priority }))}
+                  className={`h-[45px] rounded-lg border text-sm font-medium transition-colors ${
+                    newTodo.priority === p.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setCreateOpen(false)}
+              className="flex-1 h-[45px] rounded-lg border border-border text-foreground hover:bg-accent"
+            >
               取消
             </button>
-            <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90">
+            <button
+              type="submit"
+              disabled={!newTodo.text.trim()}
+              className="flex-1 h-[45px] rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
               创建任务
             </button>
           </div>
@@ -458,7 +499,7 @@ export default function App() {
       >
         <form onSubmit={handleCreateCategory} className="space-y-5">
           <label className="block space-y-2">
-            <span className="text-sm text-muted-foreground">分类名称</span>
+            <span className="text-sm text-muted-foreground block mb-2">分类名称</span>
             <input
               autoFocus
               value={newCategoryName}
@@ -469,7 +510,7 @@ export default function App() {
           </label>
 
           <div className="space-y-2">
-            <span className="text-sm text-muted-foreground">颜色</span>
+            <span className="text-sm text-muted-foreground block mb-2">颜色</span>
             <div className="flex gap-2">
               {CATEGORY_COLORS.map((color) => (
                 <button

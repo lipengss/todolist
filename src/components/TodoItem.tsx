@@ -1,5 +1,4 @@
-import * as Checkbox from "@radix-ui/react-checkbox";
-import { Check, FileText, RotateCcw, Star, Trash2 } from "lucide-react";
+import { Check, FileText, Star, Trash2, RotateCcw } from "lucide-react";
 import { Todo } from "./types";
 
 interface TodoItemProps {
@@ -33,6 +32,9 @@ export function TodoItem({
   const priorityLabels = { high: "高", medium: "中", low: "低" };
   const dateLabel = todo.dueDate ? todo.dueDate : "无日期";
 
+  const subtaskCount = Array.isArray(todo.subtasks) ? todo.subtasks.length : 0;
+  const completedSubtaskCount = Array.isArray(todo.subtasks) ? todo.subtasks.filter((s) => s.completed).length : 0;
+
   return (
     <div
       role="button"
@@ -43,20 +45,22 @@ export function TodoItem({
       }}
       className="group flex items-start gap-4 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
     >
-      <Checkbox.Root
-        checked={todo.completed}
-        onClick={(event) => event.stopPropagation()}
-        onCheckedChange={() => onToggle(todo.id)}
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggle(todo.id);
+        }}
         disabled={isTrashView}
         className={`flex-shrink-0 mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-          todo.completed ? "bg-chart-3 border-chart-3" : "border-muted-foreground/40 hover:border-primary"
+          todo.completed
+            ? "bg-chart-3 border-chart-3"
+            : "border-muted-foreground/40 hover:border-primary"
         } ${isTrashView ? "opacity-50 cursor-not-allowed" : ""}`}
         aria-label={todo.completed ? "标记为未完成" : "标记为已完成"}
       >
-        <Checkbox.Indicator>
-          <Check className="w-3.5 h-3.5 text-white" />
-        </Checkbox.Indicator>
-      </Checkbox.Root>
+        {todo.completed && <Check className="w-3.5 h-3.5 text-white" />}
+      </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2 mb-2">
@@ -83,11 +87,11 @@ export function TodoItem({
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-xs px-2 py-0.5 rounded-md border ${categoryColor}`}>{categoryName}</span>
           <span className={`text-xs px-2 py-0.5 rounded-md border ${priorityColors[todo.priority]}`}>
-            {priorityLabels[todo.priority]}优先级
+            {priorityLabels[todo.priority]}
           </span>
-          {todo.subtasks && (
+          {subtaskCount > 0 && (
             <span className="text-xs text-muted-foreground">
-              子任务 {todo.subtasks.completed}/{todo.subtasks.total}
+              子任务 {completedSubtaskCount}/{subtaskCount}
             </span>
           )}
         </div>
