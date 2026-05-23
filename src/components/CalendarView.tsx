@@ -329,7 +329,7 @@ export function CalendarView({
                     <button
                       key={todo.id}
                       onClick={() => onOpenDetail(todo.id)}
-                      className="w-full text-left p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-colors"
+                      className="w-full text-left p-3 rounded-lg bg-card border border-border hover:border-primary/30 transition-colors overflow-hidden min-w-0"
                     >
                       <div className="flex items-start gap-2">
                         <div
