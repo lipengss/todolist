@@ -34,6 +34,7 @@ export function Header({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
+            id="search-input"
             type="text"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}

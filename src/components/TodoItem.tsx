@@ -6,6 +6,7 @@ interface TodoItemProps {
   categoryName: string;
   categoryColor: string;
   isTrashView: boolean;
+  focused?: boolean;
   onOpenDetail: (id: string) => void;
   onToggle: (id: string) => void;
   onToggleStar: (id: string) => void;
@@ -18,6 +19,7 @@ export function TodoItem({
   categoryName,
   categoryColor,
   isTrashView,
+  focused = false,
   onOpenDetail,
   onToggle,
   onToggleStar,
@@ -43,7 +45,7 @@ export function TodoItem({
       onKeyDown={(event) => {
         if (event.key === "Enter") onOpenDetail(todo.id);
       }}
-      className="group flex items-start gap-4 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+      className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-colors cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50"}`}
     >
       <button
         type="button"
