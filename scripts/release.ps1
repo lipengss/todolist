@@ -59,9 +59,11 @@ if ($confirm -ne "y" -and $confirm -ne "Y") {
   exit 0
 }
 
-# 5. 更新 package.json
+# 5. 更新 package.json (不带 BOM，否则 Vite 解析会失败)
 $pkg.version = $newVersion
-$pkg | ConvertTo-Json -Depth 10 | Set-Content package.json -Encoding utf8
+$json = $pkg | ConvertTo-Json -Depth 10
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText("$PWD\package.json", $json, $utf8NoBom)
 Write-Host "✅ package.json 版本已更新: $newVersion" -ForegroundColor Green
 
 # 6. 提交版本更新
