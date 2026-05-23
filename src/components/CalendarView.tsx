@@ -197,8 +197,8 @@ export function CalendarView({
             const isTodayDate = isToday(date);
             const isSelected = selectedDate && isSameDay(date, selectedDate);
 
-            const priorities = [...new Set(dayTodos.map((t) => t.priority))].slice(0, 3);
-            const overflow = Math.max(0, dayTodos.length - priorities.length);
+            const displayTodos = dayTodos.slice(0, 2);
+            const overflow = Math.max(0, dayTodos.length - displayTodos.length);
 
             if (inlineAddDate === dateStr) {
               return (
@@ -227,7 +227,7 @@ export function CalendarView({
                 onDoubleClick={() => handleCellDoubleClick(dateStr)}
                 onMouseEnter={() => setHoveredDate(dateStr)}
                 onMouseLeave={() => setHoveredDate(null)}
-                className={`relative flex flex-col items-center justify-start gap-0.5 pt-2 pb-1 transition-colors ${
+                className={`relative flex flex-col items-stretch justify-start gap-0.5 pt-2 pb-1 transition-colors ${
                   !isCurrentMonth
                     ? "bg-card/40 text-muted-foreground/30"
                     : isSelected
@@ -236,7 +236,7 @@ export function CalendarView({
                 }`}
               >
                 <span
-                  className={`text-sm w-7 h-7 flex items-center justify-center rounded-full ${
+                  className={`self-center text-sm w-7 h-7 flex items-center justify-center rounded-full ${
                     isTodayDate
                       ? "bg-primary text-primary-foreground"
                       : isCurrentMonth
@@ -247,16 +247,20 @@ export function CalendarView({
                   {format(date, "d")}
                 </span>
                 {isCurrentMonth && dayTodos.length > 0 && (
-                  <div className="flex items-center gap-0.5">
-                    {priorities.map((p) => (
-                      <div
-                        key={p}
-                        className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p] ?? "bg-muted-foreground"}`}
-                      />
+                  <div className="w-full px-1 space-y-0.5">
+                    {displayTodos.map((t) => (
+                      <div key={t.id} className="flex items-center gap-1 min-w-0">
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[t.priority] ?? "bg-muted-foreground"}`}
+                        />
+                        <span className="text-[10px] text-foreground truncate leading-tight">
+                          {t.text}
+                        </span>
+                      </div>
                     ))}
                     {overflow > 0 && (
-                      <span className="text-[10px] text-muted-foreground leading-none ml-0.5">
-                        +{overflow}
+                      <span className="text-[10px] text-muted-foreground leading-none pl-2.5">
+                        +{overflow} 个
                       </span>
                     )}
                   </div>
