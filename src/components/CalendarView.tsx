@@ -14,6 +14,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
 import { Category, Todo } from "./types";
+import { Input } from "./ui/Input";
 import { ScrollArea } from "./ui/ScrollArea";
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
@@ -203,7 +204,7 @@ export function CalendarView({
               return (
                 <div key={dateStr} className="bg-card p-1 flex flex-col gap-1 relative">
                   <span className="text-sm text-center text-muted-foreground pt-1">{format(date, "d")}</span>
-                  <input
+                  <Input
                     autoFocus
                     value={inlineAddText}
                     onChange={(e) => setInlineAddText(e.target.value)}
@@ -213,7 +214,7 @@ export function CalendarView({
                     }}
                     onBlur={() => { setInlineAddDate(null); setInlineAddText(""); }}
                     placeholder="新任务..."
-                    className="w-full bg-background border border-primary rounded-md px-2 py-1 text-xs text-foreground outline-none placeholder:text-muted-foreground"
+                    className="bg-background border-primary rounded-md px-2 py-1 text-xs"
                   />
                 </div>
               );
@@ -300,7 +301,7 @@ export function CalendarView({
             </div>
             {panelAddActive && (
               <div className="mt-3">
-                <input
+                <Input
                   autoFocus
                   value={panelAddText}
                   onChange={(e) => setPanelAddText(e.target.value)}
@@ -309,7 +310,7 @@ export function CalendarView({
                     if (e.key === "Escape") { setPanelAddActive(false); setPanelAddText(""); }
                   }}
                   placeholder="快速添加任务..."
-                  className="w-full h-9 bg-background border border-primary rounded-lg px-3 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                  className="h-9 bg-background border-primary px-3 py-1.5"
                 />
               </div>
             )}

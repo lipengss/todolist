@@ -1,5 +1,6 @@
 import { CalendarDays, Search } from "lucide-react";
 import { DueFilter, PriorityFilter } from "./types";
+import { Input } from "./ui/Input";
 import { SelectField } from "./ui/SelectField";
 
 interface HeaderProps {
@@ -33,13 +34,12 @@ export function Header({
       <div className="flex items-center gap-3">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
+          <Input
             id="search-input"
-            type="text"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="搜索任务..."
-            className="h-11 bg-card border border-border rounded-xl pl-11 pr-4 py-2.5 w-64 outline-none placeholder:text-muted-foreground focus:ring-2 ring-ring/30 transition-colors"
+            className="h-11 pl-11 w-64 rounded-xl"
           />
         </div>
 

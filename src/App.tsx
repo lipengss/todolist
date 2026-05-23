@@ -10,6 +10,7 @@ import { TodoItem } from "./components/TodoItem";
 import { Category, DueFilter, FilterType, Priority, PriorityFilter, Todo } from "./components/types";
 import { DatePicker } from "./components/ui/DatePicker";
 import { FormField, FormPrimitive } from "./components/ui/Form";
+import { Input } from "./components/ui/Input";
 import { Modal } from "./components/ui/Modal";
 import { ScrollArea } from "./components/ui/ScrollArea";
 import { TimePicker } from "./components/ui/TimePicker";
@@ -498,13 +499,13 @@ export default function App() {
       <Modal open={isCreateOpen} title="新建任务" onOpenChange={setCreateOpen}>
         <FormPrimitive.Form onSubmit={handleCreateTodo} className="space-y-5">
           <FormField name="text" label="任务名称">
-            <input
+            <Input
               autoFocus
               required
               value={newTodo.text}
               onChange={(event) => setNewTodo((current) => ({ ...current, text: event.target.value }))}
               placeholder="输入任务名称..."
-              className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30 placeholder:text-muted-foreground"
+              className="h-[45px]"
             />
           </FormField>
 
@@ -600,12 +601,12 @@ export default function App() {
         <form onSubmit={handleCreateCategory} className="space-y-5">
           <label className="block space-y-2">
             <span className="text-sm text-muted-foreground block mb-2">分类名称</span>
-            <input
+            <Input
               autoFocus
               value={newCategoryName}
               onChange={(event) => setNewCategoryName(event.target.value)}
               placeholder="例如：项目、家庭、灵感"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+              className="bg-background"
             />
           </label>
 
@@ -645,12 +646,12 @@ export default function App() {
         <form onSubmit={handleEditCategory} className="space-y-5">
           <label className="block space-y-2">
             <span className="text-sm text-muted-foreground block mb-2">分类名称</span>
-            <input
+            <Input
               autoFocus
               value={newCategoryName}
               onChange={(event) => setNewCategoryName(event.target.value)}
               placeholder="例如：项目、家庭、灵感"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 ring-ring/30"
+              className="bg-background"
             />
           </label>
 
@@ -706,14 +707,14 @@ export default function App() {
           className="space-y-5"
         >
           <FormField name="reminderMinutes" label="提前提醒时间（分钟）">
-            <input
+            <Input
               type="number"
               required
               min={1}
               max={120}
               value={settingsForm.reminderMinutes}
               onChange={(e) => setSettingsForm((s) => ({ ...s, reminderMinutes: Number(e.target.value) || 1 }))}
-              className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
+              className="h-[45px]"
             />
           </FormField>
 
@@ -736,14 +737,14 @@ export default function App() {
 
           {settingsForm.repeatEnabled && (
             <FormField name="repeatIntervalMinutes" label="重复间隔（分钟）">
-              <input
+              <Input
                 type="number"
                 required
                 min={1}
                 max={60}
                 value={settingsForm.repeatIntervalMinutes}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, repeatIntervalMinutes: Number(e.target.value) || 1 }))}
-                className="w-full h-[45px] bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30"
+                className="h-[45px]"
               />
             </FormField>
           )}

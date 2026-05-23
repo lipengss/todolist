@@ -3,6 +3,8 @@ import { Check, FileText, Plus, Trash2, X } from "lucide-react";
 import { Category, Priority, Todo } from "./types";
 import { useState } from "react";
 import { DatePicker } from "./ui/DatePicker";
+import { Input } from "./ui/Input";
+import { Textarea } from "./ui/Textarea";
 import { TimePicker } from "./ui/TimePicker";
 
 interface TodoDetailPanelProps {
@@ -64,7 +66,7 @@ export function TodoDetailPanel({
       <div className="relative bg-card border-l border-border w-[576px] h-full overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-card border-b border-border px-6 py-5 flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Checkbox.Root
               checked={todo.completed}
               onCheckedChange={() => onUpdate(todo.id, { completed: !todo.completed })}
@@ -80,7 +82,7 @@ export function TodoDetailPanel({
               onChange={(e) => setText(e.target.value)}
               onBlur={handleSaveText}
               onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-              className="text-xl font-medium text-foreground bg-transparent border-none outline-none min-w-0 flex-1 placeholder:text-muted-foreground"
+              className="text-xl font-medium text-foreground mt-[2px] bg-transparent border-none outline-none min-w-0 flex-1 placeholder:text-muted-foreground"
               placeholder="未命名任务"
             />
           </div>
@@ -182,13 +184,12 @@ export function TodoDetailPanel({
               ))}
             </div>
             <div className="flex gap-2">
-              <input
-                type="text"
+              <Input
                 value={newSubtask}
                 onChange={(e) => setNewSubtask(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
                 placeholder="添加子任务..."
-                className="flex-1 h-10 bg-card border border-border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 ring-ring/30 placeholder:text-muted-foreground"
+                className="h-10 rounded-xl"
               />
               <button
                 onClick={handleAddSubtask}
@@ -205,7 +206,7 @@ export function TodoDetailPanel({
               <FileText className="w-4 h-4 text-muted-foreground" />
               <h3 className="text-sm text-muted-foreground font-medium">备注</h3>
             </div>
-            <textarea
+            <Textarea
               value={note}
               onChange={(e) => {
                 setNote(e.target.value);
@@ -213,7 +214,7 @@ export function TodoDetailPanel({
               }}
               rows={5}
               placeholder="添加备注..."
-              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 ring-ring/30 resize-none placeholder:text-muted-foreground"
+              className="rounded-xl"
             />
           </section>
 
