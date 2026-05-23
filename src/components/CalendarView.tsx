@@ -18,12 +18,6 @@ import { ScrollArea } from "./ui/ScrollArea";
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
 
-const PRIORITY_BAR: Record<string, string> = {
-  high: "border-l-chart-2 bg-chart-2/15",
-  medium: "border-l-chart-1 bg-chart-1/15",
-  low: "border-l-chart-4 bg-chart-4/15",
-};
-
 const PRIORITY_TEXT: Record<string, string> = {
   high: "text-chart-2",
   medium: "text-chart-1",
@@ -248,11 +242,9 @@ export function CalendarView({
                 {isCurrentMonth && dayTodos.length > 0 && (
                   <div className="w-full px-1 space-y-0.5">
                     {dayTodos.map((t) => (
-                      <div
-                        key={t.id}
-                        className={`min-w-0 border-l-2 rounded-sm px-1 ${PRIORITY_BAR[t.priority] ?? "border-l-muted-foreground bg-muted/10"}`}
-                      >
-                        <span className="text-[10px] text-foreground truncate block leading-tight">
+                      <div key={t.id} className="flex items-center gap-1 min-w-0">
+                        <div className={`w-1 h-1 rounded-full flex-shrink-0 ${PRIORITY_TEXT[t.priority]?.replace("text-", "bg-") ?? "bg-muted-foreground"}`} />
+                        <span className={`text-[10px] truncate leading-tight ${PRIORITY_TEXT[t.priority] ?? "text-foreground"}`}>
                           {t.text}
                         </span>
                       </div>
