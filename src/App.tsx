@@ -497,7 +497,7 @@ export default function App() {
       </div>
 
       <Modal open={isCreateOpen} title="新建任务" onOpenChange={setCreateOpen}>
-        <FormPrimitive.Form onSubmit={handleCreateTodo} className="space-y-5">
+        <FormPrimitive.Form noValidate onSubmit={handleCreateTodo} className="space-y-5">
           <FormField name="text" label="任务名称">
             <Input
               autoFocus
@@ -699,6 +699,7 @@ export default function App() {
 
       <Modal open={isSettingsOpen} title="通知设置" maxWidth="max-w-sm" onOpenChange={setSettingsOpen}>
         <FormPrimitive.Form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             updateSettings(settingsForm);
