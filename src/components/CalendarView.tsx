@@ -24,6 +24,12 @@ const PRIORITY_TEXT: Record<string, string> = {
   low: "text-chart-4",
 };
 
+const PRIORITY_CAPSULE: Record<string, string> = {
+  high: "bg-chart-2/15 text-chart-2",
+  medium: "bg-chart-1/15 text-chart-1",
+  low: "bg-chart-4/15 text-chart-4",
+};
+
 const PRIORITY_LABEL: Record<string, string> = {
   high: "高",
   medium: "中",
@@ -240,14 +246,17 @@ export function CalendarView({
                   {format(date, "d")}
                 </span>
                 {isCurrentMonth && dayTodos.length > 0 && (
-                  <div className="w-full px-1 space-y-0.5">
+                  <div className="w-full px-0.5 space-y-0.5">
                     {dayTodos.map((t) => (
-                      <span key={t.id} className="text-[10px] text-foreground truncate leading-tight block">
+                      <div
+                        key={t.id}
+                        className={`text-[10px] truncate leading-tight rounded-sm px-1 ${PRIORITY_CAPSULE[t.priority] ?? "bg-muted/10 text-muted-foreground"}`}
+                      >
                         {t.text}
-                      </span>
+                      </div>
                     ))}
                     {overflowCount > 0 && (
-                      <span className="text-[10px] text-muted-foreground leading-none pl-2.5">
+                      <span className="text-[10px] text-muted-foreground leading-none pl-1">
                         +{overflowCount} 个
                       </span>
                     )}
