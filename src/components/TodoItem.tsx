@@ -1,4 +1,4 @@
-import { Check, FileText, Star, Trash2, RotateCcw } from "lucide-react";
+import { Check, FileText, Repeat, Star, Trash2, RotateCcw } from "lucide-react";
 import { Todo } from "./types";
 
 interface TodoItemProps {
@@ -45,7 +45,7 @@ export function TodoItem({
       onKeyDown={(event) => {
         if (event.key === "Enter") onOpenDetail(todo.id);
       }}
-      className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-colors cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50"}`}
+      className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none animate-fade-in ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50 hover:shadow-md"}`}
     >
       <button
         type="button"
@@ -91,6 +91,12 @@ export function TodoItem({
           <span className={`text-xs px-2 py-0.5 rounded-md border ${priorityColors[todo.priority]}`}>
             {priorityLabels[todo.priority]}
           </span>
+          {todo.recurrence && todo.recurrence !== "none" && (
+            <span className="inline-flex items-center gap-1 text-xs text-chart-5">
+              <Repeat className="w-3 h-3" />
+              {{ daily: "每天", weekly: "每周", monthly: "每月" }[todo.recurrence]}
+            </span>
+          )}
           {subtaskCount > 0 && (
             <span className="text-xs text-muted-foreground">
               子任务 {completedSubtaskCount}/{subtaskCount}

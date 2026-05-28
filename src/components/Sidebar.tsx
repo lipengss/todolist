@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane } from "lucide-react";
 import { useState } from "react";
 import { Category, FilterType } from "./types";
 import { ScrollArea } from "./ui/ScrollArea";
@@ -45,11 +45,12 @@ export function Sidebar({
     { id: "calendar", label: "日历", icon: CalendarDays },
     { id: "today", label: "今天", icon: Clock, count: stats.today },
     { id: "planned" as FilterType, label: "计划", icon: Plane, count: stats.planned },
-    { id: "inbox" as FilterType, label: "收集箱", icon: Star, count: stats.inbox },
+    { id: "inbox" as FilterType, label: "收藏", icon: Star, count: stats.inbox },
     { id: "all" as FilterType, label: "全部任务", icon: FileText, count: stats.all },
   ];
 
   const bottomViews: { id: FilterType; label: string; icon: typeof CheckCircle; count?: number }[] = [
+    { id: "stats", label: "统计", icon: BarChart3 },
     { id: "completed", label: "已完成", icon: CheckCircle, count: stats.completed },
     { id: "trash", label: "垃圾箱", icon: Trash2, count: stats.trash },
   ];

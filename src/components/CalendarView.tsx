@@ -12,8 +12,9 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
 import { Category, Todo } from "./types";
+import { EmptyState } from "./EmptyState";
 import { Input } from "./ui/Input";
 import { ScrollArea } from "./ui/ScrollArea";
 
@@ -318,7 +319,7 @@ export function CalendarView({
           <ScrollArea className="flex-1 min-h-0" viewportClassName="p-3">
             <div className="space-y-2">
               {selectedTodos.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">暂无任务</p>
+                <EmptyState icon={<CalendarDays className="w-7 h-7" />} title="当天无任务" description="点击右上角 + 快速为此日期添加任务" />
               ) : (
                 selectedTodos.map((todo) => {
                   const category = categories.get(todo.category);

@@ -1,4 +1,4 @@
-import { CalendarDays, Search } from "lucide-react";
+import { CalendarDays, PanelLeftClose, PanelLeft, Search } from "lucide-react";
 import { DueFilter, PriorityFilter } from "./types";
 import { Input } from "./ui/Input";
 import { SelectField } from "./ui/SelectField";
@@ -12,6 +12,8 @@ interface HeaderProps {
   onPriorityFilterChange: (value: PriorityFilter) => void;
   dueFilter: DueFilter;
   onDueFilterChange: (value: DueFilter) => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export function Header({
@@ -23,12 +25,25 @@ export function Header({
   onPriorityFilterChange,
   dueFilter,
   onDueFilterChange,
+  sidebarCollapsed,
+  onToggleSidebar,
 }: HeaderProps) {
   return (
     <header className="border-b border-border px-8 py-6 flex items-center justify-between gap-6 bg-background/95">
-      <div className="min-w-0">
-        <h1 className="text-3xl font-medium leading-normal truncate">{title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{date}</p>
+      <div className="flex items-center gap-3 min-w-0">
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={sidebarCollapsed ? "展开侧边栏" : "折叠侧边栏"}
+          >
+            {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-3xl font-medium leading-normal truncate">{title}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{date}</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

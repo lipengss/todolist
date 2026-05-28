@@ -1,4 +1,5 @@
 export type Priority = "low" | "medium" | "high";
+export type Recurrence = "none" | "daily" | "weekly" | "monthly";
 
 export interface Subtask {
   id: string;
@@ -18,10 +19,12 @@ export interface Todo {
   dueTime?: string;
   subtasks?: Subtask[];
   createdAt: string;
+  completedAt?: string;
   deletedAt?: string;
+  recurrence?: Recurrence;
 }
 
-export type FilterType = "calendar" | "today" | "planned" | "inbox" | "all" | "completed" | "trash";
+export type FilterType = "calendar" | "today" | "planned" | "inbox" | "all" | "completed" | "trash" | "stats";
 
 export type PriorityFilter = "all" | Priority;
 
