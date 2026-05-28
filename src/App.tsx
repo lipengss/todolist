@@ -1,13 +1,16 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useRef, useEffect, useMemo, useState } from "react";
 
 
 import { CalendarView } from "./components/CalendarView";
+import { EmptyState } from "./components/EmptyState";
+import { QuickAddBar } from "./components/QuickAddBar";
+import { StatsView } from "./components/StatsView";
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
 import { StatsCards } from "./components/StatsCards";
 import { TodoDetailPanel } from "./components/TodoDetailPanel";
 import { TodoItem } from "./components/TodoItem";
-import { Category, DueFilter, FilterType, Priority, PriorityFilter, Todo } from "./components/types";
+import { Category, DueFilter, FilterType, Priority, PriorityFilter, Recurrence, Todo } from "./components/types";
 import { DatePicker } from "./components/ui/DatePicker";
 import { FormField, FormPrimitive } from "./components/ui/Form";
 import { Input } from "./components/ui/Input";
@@ -19,15 +22,12 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
 import { getSettings, updateSettings } from "./hooks/useSettings";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
-
-type StoredCategory = Omit<Category, "count">;
-
-const DEFAULT_CATEGORIES: StoredCategory[] = [
-  { id: "work", name: "工作", color: "bg-chart-5" },
-  { id: "study", name: "学习", color: "bg-chart-4" },
-  { id: "life", name: "生活", color: "bg-chart-1" },
-  { id: "health", name: "健康", color: "bg-chart-3" },
-];
+import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
+import { useApiTodos } from "./hooks/useApiTodos";
+import { useApiCategories } from "./hooks/useApiCategories";
+import { LoginScreen } from "./components/LoginScreen";
+import { isLoggedIn, logout } from "./api/auth";
+import { type StoredCategory } from "./hooks/useCategories";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "bg-chart-1": "bg-chart-1/20 text-chart-1 border-chart-1/30",
@@ -38,85 +38,7 @@ const CATEGORY_STYLES: Record<string, string> = {
 };
 
 const CATEGORY_COLORS = Object.keys(CATEGORY_STYLES);
-const TODOS_STORAGE_KEY = "focusworkspace.todos.v1";
-const CATEGORIES_STORAGE_KEY = "focusworkspace.categories.v1";
 const getToday = () => new Date().toISOString().split("T")[0];
-
-const INITIAL_TODOS: Todo[] = [
-  {
-    id: "1",
-    text: "完成产品设计稿",
-    note: "检查任务详情、分类筛选和桌面端保存体验。",
-    completed: false,
-    starred: true,
-    priority: "high",
-    category: "work",
-    dueDate: getToday(),
-    dueTime: "14:00",
-    subtasks: [
-      { id: "s1", text: "设计首页", completed: true },
-      { id: "s2", text: "设计详情页", completed: false },
-      { id: "s3", text: "设计用户中心", completed: false },
-    ],
-    createdAt: getToday(),
-  },
-  {
-    id: "2",
-    text: "回复客户邮件",
-    completed: false,
-    starred: false,
-    priority: "medium",
-    category: "work",
-    dueDate: getToday(),
-    dueTime: "16:00",
-    createdAt: getToday(),
-  },
-  {
-    id: "3",
-    text: "阅读《深度工作》第三章",
-    completed: false,
-    starred: false,
-    priority: "medium",
-    category: "study",
-    dueDate: getToday(),
-    dueTime: "20:00",
-    subtasks: [{ id: "s4", text: "完成章节练习", completed: false }],
-    createdAt: getToday(),
-  },
-  {
-    id: "4",
-    text: "健身 30 分钟",
-    completed: false,
-    starred: false,
-    priority: "low",
-    category: "health",
-    dueDate: getToday(),
-    dueTime: "18:30",
-    createdAt: getToday(),
-  },
-  {
-    id: "5",
-    text: "整理桌面和文件",
-    completed: true,
-    starred: false,
-    priority: "low",
-    category: "life",
-    dueDate: getToday(),
-    dueTime: "10:30",
-    createdAt: getToday(),
-  },
-  {
-    id: "6",
-    text: "购买日常用品",
-    completed: true,
-    starred: false,
-    priority: "low",
-    category: "life",
-    dueDate: getToday(),
-    dueTime: "11:00",
-    createdAt: getToday(),
-  },
-];
 
 interface NewTodoForm {
   text: string;
@@ -125,6 +47,7 @@ interface NewTodoForm {
   priority: Priority;
   dueDate: string;
   dueTime: string;
+  recurrence: Recurrence;
 }
 
 const createEmptyTodoForm = (): NewTodoForm => ({
@@ -134,20 +57,8 @@ const createEmptyTodoForm = (): NewTodoForm => ({
   priority: "medium",
   dueDate: getToday(),
   dueTime: "",
+  recurrence: "none",
 });
-
-function readJsonArray<T>(key: string, fallback: T[]) {
-  if (typeof window === "undefined") return fallback;
-
-  try {
-    const stored = window.localStorage.getItem(key);
-    if (!stored) return fallback;
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? (parsed as T[]) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 function isDueSoon(todo: Todo) {
   if (!todo.dueDate) return false;
@@ -157,10 +68,9 @@ function isDueSoon(todo: Todo) {
 }
 
 export default function App() {
-  const [todos, setTodos] = useState<Todo[]>(() => readJsonArray<Todo>(TODOS_STORAGE_KEY, INITIAL_TODOS));
-  const [storedCategories, setStoredCategories] = useState<StoredCategory[]>(() =>
-    readJsonArray<StoredCategory>(CATEGORIES_STORAGE_KEY, DEFAULT_CATEGORIES),
-  );
+  const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const { todos, loading, add: addTodoApi, update: updateTodoBase, softDelete: softDeleteTodo, removeMany: removeTodosApi } = useApiTodos();
+  const { categories: storedCategories, add: addCategory, update: updateCategory, remove: deleteCategory } = useApiCategories();
   type StatCardFilter = "pending" | "highPriority" | "dueSoon" | "completed";
 
   const [filter, setFilter] = useState<FilterType>("today");
@@ -178,14 +88,48 @@ export default function App() {
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [settingsForm, setSettingsForm] = useState(getSettings);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    window.localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
+  const handleExportData = () => {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      todos,
+      categories: storedCategories,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `focusworkspace-backup-${getToday()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
-  useEffect(() => {
-    window.localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(storedCategories));
-  }, [storedCategories]);
+  const handleImportData = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const raw = JSON.parse(e.target?.result as string);
+        if (!raw || typeof raw !== "object") throw new Error("Invalid format");
+        const importedTodos = Array.isArray(raw.todos) ? raw.todos as Todo[] : [];
+        for (const todo of importedTodos) {
+          await addTodoApi({ text: todo.text, note: todo.note, completed: todo.completed, starred: todo.starred, priority: todo.priority, dueDate: todo.dueDate, dueTime: todo.dueTime, recurrence: todo.recurrence, category: todo.category, createdAt: todo.createdAt, subtasks: todo.subtasks?.map(s => ({ text: s.text, completed: s.completed })) });
+        }
+      } catch {
+        alert("导入失败：文件格式不正确");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
 
   const activeTodos = useMemo(() => todos.filter((todo) => !todo.deletedAt), [todos]);
   const trashedTodos = useMemo(() => todos.filter((todo) => todo.deletedAt), [todos]);
@@ -250,7 +194,7 @@ export default function App() {
     onCreateTodo: () => setCreateOpen(true),
     onToggleFocused: (index) => {
       const todo = filteredTodos[index];
-      if (todo) updateTodo(todo.id, { completed: !todo.completed });
+      if (todo) updateTodoBase(todo.id, { completed: !todo.completed });
     },
     onOpenFocused: (index) => {
       const todo = filteredTodos[index];
@@ -295,17 +239,12 @@ export default function App() {
     };
   }, [activeTodos, trashedTodos]);
 
-  const updateTodo = (id: string, patch: Partial<Todo>) => {
-    setTodos((currentTodos) => currentTodos.map((todo) => (todo.id === id ? { ...todo, ...patch } : todo)));
-  };
-
-  const handleCreateTodo = (event: FormEvent<HTMLFormElement>) => {
+  const handleCreateTodo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const text = newTodo.text.trim();
     if (!text) return;
 
-    const todo: Todo = {
-      id: crypto.randomUUID(),
+    const created = await addTodoApi({
       text,
       note: newTodo.note.trim() || undefined,
       completed: false,
@@ -314,14 +253,14 @@ export default function App() {
       category: newTodo.category,
       dueDate: newTodo.dueDate || undefined,
       dueTime: newTodo.dueTime || undefined,
+      recurrence: newTodo.recurrence === "none" ? undefined : newTodo.recurrence,
       createdAt: getToday(),
-    };
+    });
 
-    setTodos((currentTodos) => [todo, ...currentTodos]);
     setNewTodo(createEmptyTodoForm());
     setCreateOpen(false);
     setFilter("today");
-    setSelectedTodoId(todo.id);
+    setSelectedTodoId(created.id);
   };
 
   const handleCreateCategory = (event: FormEvent<HTMLFormElement>) => {
@@ -335,7 +274,7 @@ export default function App() {
       color: newCategoryColor,
     };
 
-    setStoredCategories((current) => [...current, category]);
+    addCategory(category);
     setNewCategoryName("");
     setNewCategoryColor("bg-chart-5");
     setCategoryOpen(false);
@@ -354,31 +293,28 @@ export default function App() {
     const name = newCategoryName.trim();
     if (!name || !editingCategory) return;
 
-    setStoredCategories((current) =>
-      current.map((cat) => (cat.id === editingCategory.id ? { ...cat, name, color: newCategoryColor } : cat)),
-    );
+    updateCategory(editingCategory.id, { name, color: newCategoryColor });
     setEditingCategory(null);
     setNewCategoryName("");
     setNewCategoryColor("bg-chart-5");
   };
 
   const handleDeleteCategory = (id: string) => {
-    setStoredCategories((current) => current.filter((cat) => cat.id !== id));
+    deleteCategory(id);
     if (categoryFilter === id) setCategoryFilter("all");
   };
 
   const handleDeleteTodo = (id: string) => {
-    updateTodo(id, { deletedAt: new Date().toISOString() });
+    softDeleteTodo(id);
     if (selectedTodoId === id) setSelectedTodoId(null);
   };
 
   const handleRestoreTodo = (id: string) => {
-    updateTodo(id, { deletedAt: undefined });
+    updateTodoBase(id, { deletedAt: undefined });
   };
 
   const handleQuickAddTodo = (text: string, date: string) => {
-    const todo: Todo = {
-      id: crypto.randomUUID(),
+    addTodoApi({
       text,
       completed: false,
       starred: false,
@@ -386,8 +322,7 @@ export default function App() {
       category: storedCategories[0]?.id ?? "work",
       dueDate: date,
       createdAt: getToday(),
-    };
-    setTodos((currentTodos) => [todo, ...currentTodos]);
+    });
   };
 
   const titles: Record<FilterType, string> = {
@@ -398,6 +333,7 @@ export default function App() {
     all: "全部任务",
     completed: "已完成",
     trash: "垃圾箱",
+    stats: "统计",
   };
 
   const formattedDate = (() => {
@@ -406,21 +342,35 @@ export default function App() {
     return `${now.getMonth() + 1}月${now.getDate()}日 ${weekDays[now.getDay()]}`;
   })();
 
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-lg">加载中...</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <LoginScreen onLogin={() => setAuthenticated(true)} />;
+  }
+
   return (
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
-      <Sidebar
-        activeFilter={filter}
-        onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
-        activeCategory={categoryFilter}
-        onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
-        onCreateTodo={() => setCreateOpen(true)}
-        onCreateCategory={() => setCategoryOpen(true)}
-        onEditCategory={openEditCategory}
-        onDeleteCategory={handleDeleteCategory}
-        onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}
-        categories={categories}
-        stats={stats}
-      />
+      {!sidebarCollapsed && (
+        <Sidebar
+          activeFilter={filter}
+          onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
+          activeCategory={categoryFilter}
+          onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
+          onCreateTodo={() => setCreateOpen(true)}
+          onCreateCategory={() => setCategoryOpen(true)}
+          onEditCategory={openEditCategory}
+          onDeleteCategory={handleDeleteCategory}
+          onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}
+          categories={categories}
+          stats={stats}
+        />
+      )}
 
       <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
         <div className="flex-shrink-0">
@@ -433,6 +383,8 @@ export default function App() {
             onPriorityFilterChange={setPriorityFilter}
             dueFilter={dueFilter}
             onDueFilterChange={setDueFilter}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
           />
         </div>
 
@@ -442,9 +394,11 @@ export default function App() {
             categories={categoryById}
             categoryStyles={CATEGORY_STYLES}
             onOpenDetail={setSelectedTodoId}
-            onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+            onToggle={(id) => updateTodoBase(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
             onAddTodo={handleQuickAddTodo}
           />
+        ) : filter === "stats" ? (
+          <StatsView todos={activeTodos} categoryMap={categoryById} />
         ) : (
           <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
             <main className="max-w-6xl mx-auto space-y-6">
@@ -454,11 +408,15 @@ export default function App() {
                 onCardClick={(key) => setStatCardFilter((prev) => (prev === key ? null : key))}
               />
 
+              {filter !== "trash" && (
+                <QuickAddBar onAdd={(text) => handleQuickAddTodo(text, getToday())} />
+              )}
+
               {filter === "trash" && trashedTodos.length > 0 && (
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setTodos((currentTodos) => currentTodos.filter((todo) => !todo.deletedAt))}
+                    onClick={() => removeTodosApi(trashedTodos.map(t => t.id))}
                     className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     清空回收站
@@ -468,9 +426,15 @@ export default function App() {
 
               <div className="space-y-3">
                 {filteredTodos.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <p>{filter === "trash" ? "垃圾箱为空" : "暂无任务"}</p>
-                  </div>
+                  filter === "trash" ? (
+                    <EmptyState icon={<Trash2 className="w-7 h-7" />} title="垃圾箱为空" description="删除的任务会出现在这里，7天后可以彻底清理" />
+                  ) : filter === "completed" ? (
+                    <EmptyState icon={<CheckCircle className="w-7 h-7" />} title="还没有已完成的任务" description="完成任务后，它们会出现在这里" />
+                  ) : searchQuery.trim() ? (
+                    <EmptyState icon={<Search className="w-7 h-7" />} title="没有匹配的任务" description="试试使用不同的关键词搜索" />
+                  ) : (
+                    <EmptyState icon={<PackageOpen className="w-7 h-7" />} title="暂无任务" description="点击左侧「新建任务」或使用 Ctrl+N 快捷键创建" />
+                  )
                 ) : (
                   filteredTodos.map((todo, index) => {
                     const category = categoryById.get(todo.category);
@@ -483,8 +447,8 @@ export default function App() {
                         categoryColor={CATEGORY_STYLES[category?.color ?? ""] ?? "bg-muted text-muted-foreground border-border"}
                         isTrashView={filter === "trash"}
                         onOpenDetail={setSelectedTodoId}
-                        onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
-                        onToggleStar={(id) => updateTodo(id, { starred: !todos.find((todo) => todo.id === id)?.starred })}
+                        onToggle={(id) => updateTodoBase(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+                        onToggleStar={(id) => updateTodoBase(id, { starred: !todos.find((todo) => todo.id === id)?.starred })}
                         onDelete={handleDeleteTodo}
                         onRestore={handleRestoreTodo}
                       />
@@ -566,6 +530,31 @@ export default function App() {
                   }`}
                 >
                   {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-sm text-muted-foreground">重复</span>
+            <div className="grid grid-cols-4 gap-2 mt-2">
+              {([
+                { value: "none" as Recurrence, label: "不重复" },
+                { value: "daily" as Recurrence, label: "每天" },
+                { value: "weekly" as Recurrence, label: "每周" },
+                { value: "monthly" as Recurrence, label: "每月" },
+              ]).map((r) => (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setNewTodo((current) => ({ ...current, recurrence: r.value }))}
+                  className={`h-[40px] rounded-lg text-sm font-medium transition-colors border ${
+                    newTodo.recurrence === r.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {r.label}
                 </button>
               ))}
             </div>
@@ -691,14 +680,14 @@ export default function App() {
             "bg-muted text-muted-foreground border-border"
           }
           onClose={() => setSelectedTodoId(null)}
-          onUpdate={updateTodo}
+          onUpdate={updateTodoBase}
           onDelete={handleDeleteTodo}
           onRestore={handleRestoreTodo}
         />
       )}
       <ShortcutHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
 
-      <Modal open={isSettingsOpen} title="通知设置" maxWidth="max-w-sm" onOpenChange={setSettingsOpen}>
+      <Modal open={isSettingsOpen} title="设置" maxWidth="max-w-sm" onOpenChange={setSettingsOpen}>
         <FormPrimitive.Form
           noValidate
           onSubmit={(e) => {
@@ -748,6 +737,35 @@ export default function App() {
               />
             </div>
           )}
+
+          <div className="pt-4 border-t border-border space-y-3">
+            <span className="text-sm text-muted-foreground">数据管理</span>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleExportData}
+                className="flex-1 h-[45px] rounded-lg border border-border text-foreground hover:bg-accent text-sm"
+              >
+                导出备份
+              </button>
+              <button
+                type="button"
+                onClick={handleImportData}
+                className="flex-1 h-[45px] rounded-lg border border-border text-foreground hover:bg-accent text-sm"
+              >
+                导入恢复
+              </button>
+            </div>
+            <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
+
+            <button
+              type="button"
+              onClick={() => { logout(); setAuthenticated(false); setSettingsOpen(false); }}
+              className="w-full h-[45px] rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 text-sm mt-3"
+            >
+              退出登录
+            </button>
+          </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <button
