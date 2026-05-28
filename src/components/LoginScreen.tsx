@@ -10,6 +10,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,14 +20,15 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setLoading(true);
     try {
       if (isRegister) {
-        await register(username, password);
+        await register(username, password, inviteCode);
       } else {
         await login(username, password);
       }
       onLogin();
     } catch (err: any) {
       const msg = err?.message || "";
-      if (msg.includes("400")) setError("用户名已存在");
+      if (msg.includes("邀请码")) setError("邀请码错误");
+      else if (msg.includes("400")) setError("用户名已存在");
       else if (msg.includes("401")) setError("用户名或密码错误");
       else setError(isRegister ? "注册失败，请重试" : "登录失败，请重试");
     } finally {
@@ -74,11 +76,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               placeholder={isRegister ? "输入密码（至少3个字符）" : "输入密码"}
             />
           </div>
+
+          {isRegister && (
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1.5">邀请码</label>
+              <input
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                className="w-full h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
+                placeholder="输入邀请码"
+              />
+            </div>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={loading || !username || !password}
+          disabled={loading || !username || !password || (isRegister && !inviteCode)}
           className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           {loading ? (isRegister ? "注册中..." : "登录中...") : (isRegister ? "注册" : "登录")}

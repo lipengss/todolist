@@ -11,6 +11,7 @@ class LoginDto {
 class RegisterDto {
   @IsString() @MinLength(2) username: string;
   @IsString() @MinLength(3) password: string;
+  @IsString() inviteCode: string;
 }
 
 class ChangePasswordDto {
@@ -33,6 +34,10 @@ export class AuthController {
 
   @Post("register")
   async register(@Body() dto: RegisterDto) {
+    const inviteCode = process.env.REGISTRATION_KEY;
+    if (inviteCode && dto.inviteCode !== inviteCode) {
+      throw new BadRequestException("邀请码错误");
+    }
     const result = await this.authService.register(dto.username, dto.password);
     if (!result) {
       throw new BadRequestException("用户名已存在");
