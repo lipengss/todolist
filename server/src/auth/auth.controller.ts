@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UnauthorizedException, BadRequestException, UseGuards, Request } from "@nestjs/common";
+import { Controller, Post, Get, Body, Param, UnauthorizedException, BadRequestException, UseGuards, Request } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./auth.guard";
 import { IsString, MinLength } from "class-validator";
@@ -11,7 +11,6 @@ class LoginDto {
 class RegisterDto {
   @IsString() @MinLength(2) username: string;
   @IsString() @MinLength(3) password: string;
-  @IsString() inviteCode: string;
 }
 
 class ChangePasswordDto {
@@ -25,24 +24,54 @@ export class AuthController {
 
   @Post("login")
   async login(@Body() dto: LoginDto) {
-    const valid = await this.authService.validateUser(dto.username, dto.password);
+    const { valid, role } = await this.authService.validateUser(dto.username, dto.password);
     if (!valid) {
       throw new UnauthorizedException("用户名或密码错误");
+    }
+    // Check if there's a pending registration for this user
+    const pendingReq = await this.authService.getRegistrations();
+    const myReq = pendingReq.find(r => r.username === dto.username && r.status === "pending");
+    if (myReq) {
+      throw new UnauthorizedException("注册申请审批中，请等待管理员通过");
     }
     return this.authService.login(dto.username);
   }
 
   @Post("register")
   async register(@Body() dto: RegisterDto) {
-    const inviteCode = process.env.REGISTRATION_KEY;
-    if (inviteCode && dto.inviteCode !== inviteCode) {
-      throw new BadRequestException("邀请码错误");
-    }
-    const result = await this.authService.register(dto.username, dto.password);
+    const result = await this.authService.submitRegistration(dto.username, dto.password);
     if (!result) {
       throw new BadRequestException("用户名已存在");
     }
-    return result;
+    if ("duplicate" in result) {
+      throw new BadRequestException("你已提交过申请，请等待审批");
+    }
+    return { message: "申请已提交，等待管理员审批" };
+  }
+
+  @Get("registrations")
+  @UseGuards(JwtAuthGuard)
+  async getRegistrations(@Request() req: any) {
+    if (req.user.role !== "admin") throw new UnauthorizedException("仅管理员可查看");
+    return this.authService.getRegistrations();
+  }
+
+  @Post("registrations/:id/approve")
+  @UseGuards(JwtAuthGuard)
+  async approve(@Request() req: any, @Param("id") id: string) {
+    if (req.user.role !== "admin") throw new UnauthorizedException("仅管理员可操作");
+    const ok = await this.authService.approveRegistration(id);
+    if (!ok) throw new BadRequestException("申请不存在或已处理");
+    return { ok: true };
+  }
+
+  @Post("registrations/:id/reject")
+  @UseGuards(JwtAuthGuard)
+  async reject(@Request() req: any, @Param("id") id: string) {
+    if (req.user.role !== "admin") throw new UnauthorizedException("仅管理员可操作");
+    const ok = await this.authService.rejectRegistration(id);
+    if (!ok) throw new BadRequestException("申请不存在或已处理");
+    return { ok: true };
   }
 
   @Post("change-password")

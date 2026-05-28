@@ -10,9 +10,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,21 +20,44 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setLoading(true);
     try {
       if (isRegister) {
-        await register(username, password, inviteCode);
+        await register(username, password);
+        setSubmitted(true);
       } else {
         await login(username, password);
+        onLogin();
       }
-      onLogin();
     } catch (err: any) {
       const msg = err?.message || "";
-      if (msg.includes("邀请码")) setError("邀请码错误");
-      else if (msg.includes("400")) setError("用户名已存在");
+      if (msg.includes("审批中")) setError("你的申请正在审批中，请等待管理员通过");
+      else if (msg.includes("400")) setError("你已提交过申请，请等待审批");
       else if (msg.includes("401")) setError("用户名或密码错误");
       else setError(isRegister ? "注册失败，请重试" : "登录失败，请重试");
     } finally {
       setLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-8 space-y-6 text-center">
+          <div className="w-12 h-12 bg-chart-3 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-7 h-7 text-primary-foreground" />
+          </div>
+          <h1 className="text-xl font-semibold text-foreground">申请已提交</h1>
+          <p className="text-sm text-muted-foreground">
+            你的注册申请已提交，等待管理员审批后即可登录。
+          </p>
+          <button
+            onClick={() => { setIsRegister(false); setSubmitted(false); setUsername(""); setPassword(""); }}
+            className="text-sm text-primary hover:underline"
+          >
+            返回登录
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex items-center justify-center bg-background">
@@ -45,7 +68,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </div>
           <h1 className="text-xl font-semibold text-foreground">FocusWorkspace</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {isRegister ? "创建账号以开始使用" : "登录以同步你的数据"}
+            {isRegister ? "创建账号，等待管理员审批" : "登录以同步你的数据"}
           </p>
         </div>
 
@@ -76,26 +99,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               placeholder={isRegister ? "输入密码（至少3个字符）" : "输入密码"}
             />
           </div>
-
-          {isRegister && (
-            <div>
-              <label className="text-sm text-muted-foreground block mb-1.5">邀请码</label>
-              <input
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value)}
-                className="w-full h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
-                placeholder="输入邀请码"
-              />
-            </div>
-          )}
         </div>
 
         <button
           type="submit"
-          disabled={loading || !username || !password || (isRegister && !inviteCode)}
+          disabled={loading || !username || !password}
           className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
-          {loading ? (isRegister ? "注册中..." : "登录中...") : (isRegister ? "注册" : "登录")}
+          {loading ? (isRegister ? "提交中..." : "登录中...") : (isRegister ? "提交申请" : "登录")}
         </button>
 
         <div className="text-center">
@@ -104,7 +115,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             onClick={() => { setIsRegister(!isRegister); setError(""); }}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            {isRegister ? "已有账号？去登录" : "没有账号？去注册"}
+            {isRegister ? "已有账号？去登录" : "没有账号？提交申请"}
           </button>
         </div>
       </form>

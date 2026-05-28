@@ -19,35 +19,67 @@ export class AuthService implements OnModuleInit {
       const password = process.env.AUTH_PASSWORD || "admin";
       const hash = await bcrypt.hash(password, 10);
       await this.prisma.user.create({
-        data: { username, password: hash, createdAt: new Date().toISOString() },
+        data: { username, password: hash, role: "admin", createdAt: new Date().toISOString() },
       });
-      this.logger.log(`Default user created: ${username}`);
+      this.logger.log(`Default admin created: ${username}`);
     }
   }
 
-  async validateUser(username: string, password: string): Promise<boolean> {
+  async validateUser(username: string, password: string): Promise<{ valid: boolean; role?: string }> {
     const user = await this.prisma.user.findUnique({ where: { username } });
-    if (!user) return false;
-    return bcrypt.compare(password, user.password);
+    if (!user) return { valid: false };
+    const ok = await bcrypt.compare(password, user.password);
+    return { valid: ok, role: ok ? user.role : undefined };
   }
 
   async login(username: string) {
-    const payload = { sub: username };
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    const payload = { sub: username, role: user?.role || "user" };
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  async register(username: string, password: string) {
-    const existing = await this.prisma.user.findUnique({ where: { username } });
-    if (existing) return null;
+  async submitRegistration(username: string, password: string) {
+    const existingUser = await this.prisma.user.findUnique({ where: { username } });
+    if (existingUser) return null;
+
+    const existingReq = await this.prisma.registrationRequest.findFirst({
+      where: { username, status: "pending" },
+    });
+    if (existingReq) return { duplicate: true };
+
     const hash = await bcrypt.hash(password, 10);
-    await this.prisma.user.create({
+    await this.prisma.registrationRequest.create({
       data: { username, password: hash, createdAt: new Date().toISOString() },
     });
-    return this.login(username);
+    return { submitted: true };
+  }
+
+  async getRegistrations() {
+    return this.prisma.registrationRequest.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, username: true, status: true, createdAt: true },
+    });
+  }
+
+  async approveRegistration(id: string) {
+    const req = await this.prisma.registrationRequest.findUnique({ where: { id } });
+    if (!req || req.status !== "pending") return false;
+    await this.prisma.user.create({
+      data: { username: req.username, password: req.password, createdAt: new Date().toISOString() },
+    });
+    await this.prisma.registrationRequest.update({ where: { id }, data: { status: "approved" } });
+    return true;
+  }
+
+  async rejectRegistration(id: string) {
+    const req = await this.prisma.registrationRequest.findUnique({ where: { id } });
+    if (!req || req.status !== "pending") return false;
+    await this.prisma.registrationRequest.update({ where: { id }, data: { status: "rejected" } });
+    return true;
   }
 
   async changePassword(username: string, oldPassword: string, newPassword: string) {
-    const valid = await this.validateUser(username, oldPassword);
+    const { valid } = await this.validateUser(username, oldPassword);
     if (!valid) return false;
     const hash = await bcrypt.hash(newPassword, 10);
     await this.prisma.user.update({ where: { username }, data: { password: hash } });

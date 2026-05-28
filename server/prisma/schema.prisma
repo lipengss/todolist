@@ -41,10 +41,19 @@ model Category {
 }
 
 model User {
-  id       String @id @default(uuid())
-  username String @unique
-  password String
-  createdAt String @default("")
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt String   @default("")
+  role      String   @default("user")
+}
+
+model RegistrationRequest {
+  id        String @id @default(uuid())
+  username  String
+  password  String
+  status    String @default("pending")
+  createdAt String
 }
 
 model Settings {

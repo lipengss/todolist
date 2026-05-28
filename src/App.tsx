@@ -21,6 +21,7 @@ import { TimePicker } from "./components/ui/TimePicker";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
 import { getSettings, updateSettings } from "./hooks/useSettings";
+import { RegistrationManager } from "./components/RegistrationManager";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
 import { useApiTodos } from "./hooks/useApiTodos";
@@ -737,6 +738,8 @@ export default function App() {
               />
             </div>
           )}
+
+          <RegistrationManager />
 
           <div className="pt-4 border-t border-border space-y-3">
             <span className="text-sm text-muted-foreground">数据管理</span>
