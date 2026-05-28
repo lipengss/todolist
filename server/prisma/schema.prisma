@@ -53,6 +53,7 @@ model RegistrationRequest {
   username  String
   password  String
   status    String @default("pending")
+  ip        String @default("")
   createdAt String
 }
 

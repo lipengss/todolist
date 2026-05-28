@@ -17,7 +17,11 @@ export async function register(username: string, password: string) {
 }
 
 export async function getRegistrations() {
-  return apiFetch<{ id: string; username: string; status: string; createdAt: string }[]>("/auth/registrations");
+  return apiFetch<{ id: string; username: string; status: string; ip: string; createdAt: string }[]>("/auth/registrations");
+}
+
+export async function deleteRegistration(id: string) {
+  return apiFetch<{ ok: boolean }>(`/auth/registrations/${id}`, { method: "DELETE" });
 }
 
 export async function approveRegistration(id: string) {

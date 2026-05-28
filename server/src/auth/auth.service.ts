@@ -38,7 +38,7 @@ export class AuthService implements OnModuleInit {
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  async submitRegistration(username: string, password: string) {
+  async submitRegistration(username: string, password: string, ip: string) {
     const existingUser = await this.prisma.user.findUnique({ where: { username } });
     if (existingUser) return null;
 
@@ -49,7 +49,7 @@ export class AuthService implements OnModuleInit {
 
     const hash = await bcrypt.hash(password, 10);
     await this.prisma.registrationRequest.create({
-      data: { username, password: hash, createdAt: new Date().toISOString() },
+      data: { username, password: hash, ip, createdAt: new Date().toISOString() },
     });
     return { submitted: true };
   }
@@ -57,8 +57,13 @@ export class AuthService implements OnModuleInit {
   async getRegistrations() {
     return this.prisma.registrationRequest.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, username: true, status: true, createdAt: true },
+      select: { id: true, username: true, status: true, ip: true, createdAt: true },
     });
+  }
+
+  async deleteRegistration(id: string) {
+    await this.prisma.registrationRequest.delete({ where: { id } });
+    return true;
   }
 
   async approveRegistration(id: string) {

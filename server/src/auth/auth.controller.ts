@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, Param, UnauthorizedException, BadRequestException, UseGuards, Request } from "@nestjs/common";
+import { Controller, Post, Get, Delete, Body, Param, UnauthorizedException, BadRequestException, UseGuards, Request, Req } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./auth.guard";
 import { IsString, MinLength } from "class-validator";
+import { Request as ExpressRequest } from "express";
 
 class LoginDto {
   @IsString() username: string;
@@ -28,7 +29,6 @@ export class AuthController {
     if (!valid) {
       throw new UnauthorizedException("用户名或密码错误");
     }
-    // Check if there's a pending registration for this user
     const pendingReq = await this.authService.getRegistrations();
     const myReq = pendingReq.find(r => r.username === dto.username && r.status === "pending");
     if (myReq) {
@@ -38,8 +38,11 @@ export class AuthController {
   }
 
   @Post("register")
-  async register(@Body() dto: RegisterDto) {
-    const result = await this.authService.submitRegistration(dto.username, dto.password);
+  async register(@Body() dto: RegisterDto, @Req() req: ExpressRequest) {
+    const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+      || req.socket.remoteAddress
+      || "unknown";
+    const result = await this.authService.submitRegistration(dto.username, dto.password, ip);
     if (!result) {
       throw new BadRequestException("用户名已存在");
     }
@@ -71,6 +74,14 @@ export class AuthController {
     if (req.user.role !== "admin") throw new UnauthorizedException("仅管理员可操作");
     const ok = await this.authService.rejectRegistration(id);
     if (!ok) throw new BadRequestException("申请不存在或已处理");
+    return { ok: true };
+  }
+
+  @Delete("registrations/:id")
+  @UseGuards(JwtAuthGuard)
+  async deleteRegistration(@Request() req: any, @Param("id") id: string) {
+    if (req.user.role !== "admin") throw new UnauthorizedException("仅管理员可操作");
+    await this.authService.deleteRegistration(id);
     return { ok: true };
   }
 
