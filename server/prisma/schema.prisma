@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  id          String     @id @default(uuid())
+  text        String
+  note        String?
+  completed   Boolean    @default(false)
+  starred     Boolean    @default(false)
+  priority    String     @default("medium")
+  dueDate     String?
+  dueTime     String?
+  recurrence  String?
+  createdAt   String
+  completedAt String?
+  deletedAt   String?
+  subtasks    Subtask[]
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+}
+
+model Subtask {
+  id        String  @id @default(uuid())
+  text      String
+  completed Boolean @default(false)
+  todo      Todo    @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  todoId    String
+}
+
+model Category {
+  id    String @id @default(uuid())
+  name  String
+  color String
+  todos Todo[]
+}
+
+model Settings {
+  id                    Int     @id @default(1)
+  reminderMinutes       Int     @default(15)
+  repeatEnabled         Boolean @default(false)
+  repeatIntervalMinutes Int     @default(5)
+}
