@@ -40,6 +40,13 @@ model Category {
   todos Todo[]
 }
 
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+  createdAt String @default("")
+}
+
 model Settings {
   id                    Int     @id @default(1)
   reminderMinutes       Int     @default(15)
