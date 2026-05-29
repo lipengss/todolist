@@ -36,7 +36,7 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
   const maxTravel = () => {
     const track = trackRef.current;
     if (!track) return 200;
-    return track.clientWidth - 44;
+    return track.clientWidth - 48;
   };
 
   const onStart = useCallback((clientX: number) => {
@@ -45,7 +45,7 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    const x = clientX - rect.left - 22;
+    const x = clientX - rect.left - 24;
     setThumbLeft(Math.max(0, Math.min(x, maxTravel())));
   }, [sliderDone]);
 
@@ -54,7 +54,7 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    const x = clientX - rect.left - 22;
+    const x = clientX - rect.left - 24;
     const pos = Math.max(0, Math.min(x, maxTravel()));
     setThumbLeft(pos);
     if (pos >= maxTravel() - 2) {
@@ -182,27 +182,44 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
 
               {!isRegister && (
                 <div>
-                  <div ref={trackRef} className="relative h-10 rounded-lg border border-border bg-muted/30 select-none overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/70 rounded-lg transition-all duration-75"
-                      style={{ width: Math.max(0, thumbLeft + 22) }} />
+                  <div ref={trackRef} className="relative h-12 rounded-full border border-border bg-background select-none overflow-hidden shadow-inner">
+                    {/* Filled track */}
+                    <div className="absolute inset-y-0 left-0 bg-primary/15 rounded-l-full transition-[width] duration-75"
+                      style={{ width: Math.max(0, thumbLeft + 28) }} />
+                    {/* Completed fill */}
+                    {sliderDone && (
+                      <div className="absolute inset-0 bg-chart-3/20 rounded-full" />
+                    )}
+                    {/* Thumb */}
                     <div
                       onMouseDown={(e) => onStart(e.clientX)}
                       onTouchStart={(e) => onStart(e.touches[0].clientX)}
-                      className={`absolute top-1/2 -translate-y-1/2 w-10 h-8 bg-white rounded shadow flex items-center justify-center cursor-grab ${
-                        sliderDone ? "bg-chart-3 text-white cursor-default" : ""
+                      className={`absolute top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+                        sliderDone
+                          ? "left-auto right-0 bg-chart-3 text-white shadow-lg shadow-chart-3/30 cursor-default"
+                          : "bg-white shadow-md shadow-black/10 hover:shadow-lg hover:shadow-black/15 cursor-grab active:cursor-grabbing active:scale-105"
                       }`}
-                      style={{ left: thumbLeft }}
+                      style={sliderDone ? {} : { left: Math.max(0, thumbLeft) }}
                     >
-                      {sliderDone ? <CheckCircle className="w-4 h-4" /> : <ArrowRight className="w-4 h-4 text-primary" />}
+                      {sliderDone ? (
+                        <CheckCircle className="w-6 h-6" />
+                      ) : (
+                        <div className="flex items-center gap-0.5">
+                          <ArrowRight className="w-4 h-4 text-primary" />
+                          <ArrowRight className="w-4 h-4 text-primary/60" />
+                          <ArrowRight className="w-4 h-4 text-primary/30" />
+                        </div>
+                      )}
                     </div>
+                    {/* Label */}
                     {!sliderDone && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-xs text-muted-foreground">拖动滑块完成验证</span>
+                        <span className="text-sm text-muted-foreground/60 select-none">拖动滑块完成验证</span>
                       </div>
                     )}
                     {sliderDone && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-xs text-chart-3">验证通过</span>
+                        <span className="text-sm font-medium text-chart-3 select-none">验证通过</span>
                       </div>
                     )}
                   </div>
