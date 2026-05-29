@@ -44,8 +44,9 @@ export function TodoDetailPanel({
   };
 
   const handleAddSubtask = () => {
-    if (!newSubtask.trim()) return;
-    const newItem = { id: crypto.randomUUID(), text: newSubtask, completed: false };
+    const text = newSubtask.trim();
+    if (!text) return;
+    const newItem = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), text, completed: false };
     const updated = [...subtasks, newItem];
     setSubtasks(updated);
     setNewSubtask("");
@@ -187,7 +188,7 @@ export function TodoDetailPanel({
               <Input
                 value={newSubtask}
                 onChange={(e) => setNewSubtask(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddSubtask(); } }}
                 placeholder="添加子任务..."
                 className="h-10 rounded-xl"
               />
