@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Feature Development Rule
+
+**Before writing any code for a feature request:**
+1. First invoke the `brainstorming` skill to explore the requirements, design approach, and trade-offs
+2. Present a clear plan with options to the user
+3. Wait for the user to approve the plan before implementing
+4. Do not write a single line of code until the plan is confirmed
+
 ## Common Commands
 
 ```bash
