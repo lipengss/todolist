@@ -1,0 +1,73 @@
+<h2>登录添加图形验证码</h2>
+<p class="subtitle">用户名 → 密码 → 验证码 → 点击登录</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前登录页</div>
+    <div class="mockup-body" style="padding:24px;background:#1A1F2A;border-radius:12px;max-width:320px;margin:0 auto;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:36px;height:36px;background:#8B5CF6;border-radius:10px;margin:0 auto 12px;"></div>
+        <div style="color:#E8EDF4;font-weight:600;font-size:15px;">FocusWorkspace</div>
+        <div style="color:#8892A4;font-size:12px;">登录以同步你的数据</div>
+      </div>
+      <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:8px;padding:10px 14px;color:#8892A4;font-size:13px;margin-bottom:12px;">用户名</div>
+      <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:8px;padding:10px 14px;color:#8892A4;font-size:13px;margin-bottom:16px;">密码</div>
+      <button class="mock-button" style="width:100%;background:#8B5CF6;color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;">登录</button>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">新设计：hover 高亮 + 点击刷新</div>
+    <div class="mockup-body" style="padding:24px;background:#1A1F2A;border-radius:12px;max-width:320px;margin:0 auto;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:36px;height:36px;background:#8B5CF6;border-radius:10px;margin:0 auto 12px;"></div>
+        <div style="color:#E8EDF4;font-weight:600;font-size:15px;">FocusWorkspace</div>
+        <div style="color:#8892A4;font-size:12px;">登录以同步你的数据</div>
+      </div>
+      <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:8px;padding:10px 14px;color:#8892A4;font-size:13px;margin-bottom:12px;">用户名</div>
+      <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:8px;padding:10px 14px;color:#8892A4;font-size:13px;margin-bottom:12px;">密码</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+        <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:8px;padding:10px 14px;color:#8892A4;font-size:13px;flex:1;">验证码</div>
+        <div style="width:82px;height:40px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;" title="点击刷新验证码">
+          <svg width="78" height="36" viewBox="0 0 78 36">
+            <text x="6" y="25" font-family="monospace" font-size="20" font-weight="bold" fill="#333" transform="rotate(-8, 12, 25)">K</text>
+            <text x="22" y="22" font-family="monospace" font-size="20" font-weight="bold" fill="#555" transform="rotate(5, 28, 22)">7</text>
+            <text x="38" y="27" font-family="monospace" font-size="20" font-weight="bold" fill="#444" transform="rotate(-3, 44, 27)">x</text>
+            <text x="54" y="23" font-family="monospace" font-size="20" font-weight="bold" fill="#666" transform="rotate(10, 60, 23)">Q</text>
+            <line x1="5" y1="8" x2="45" y2="6" stroke="#ccc" stroke-width="0.5"/>
+            <line x1="30" y1="4" x2="72" y2="10" stroke="#ddd" stroke-width="0.5"/>
+            <line x1="8" y1="30" x2="60" y2="32" stroke="#bbb" stroke-width="0.5"/>
+          </svg>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:16px;">
+        <span style="color:#6b7280;font-size:11px;">&#x21bb; 看不清？点击图片刷新</span>
+      </div>
+      <button class="mock-button" style="width:100%;background:#8B5CF6;color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;">登录</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>交互细节</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#E8EDF4;font-size:13px;line-height:1.8;">
+    <ul style="margin:0;padding-left:18px;">
+      <li><strong>验证码图片：</strong>白色背景 + 扭曲字符 + 干扰线，<strong>无任何文字覆盖</strong></li>
+      <li><strong>Hover 效果：</strong>边框高亮为紫色 + 光标变 pointer，提示可点击</li>
+      <li><strong>点击刷新：</strong>点击图片立即请求新验证码，带 <span style="color:#8B5CF6;">500ms 防抖</span></li>
+      <li><strong>辅助提示：</strong>图片下方小字 "看不清？点击图片刷新"</li>
+      <li><strong>登录失败：</strong>验证码错误时自动刷新 + 清空输入 + 红色提示</li>
+      <li><strong>初始加载：</strong>页面加载时自动获取第一个验证码</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <h3>后端 API</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#8892A4;font-size:13px;line-height:1.8;">
+    <code style="color:#8B5CF6;">GET /api/auth/captcha</code> → <code style="color:#8B5CF6;">{ svg, token }</code><br>
+    <small style="color:#6b7280;">svg: 验证码 SVG 字符串，token: 临时标识（5分钟过期，内存存储）</small><br><br>
+    <code style="color:#8B5CF6;">POST /api/auth/login</code> + <code style="color:#8B5CF6;">{ ..., captchaToken, captchaText }</code><br>
+    <small style="color:#6b7280;">先验验证码，再验密码；校验后立即删除防止重用</small>
+  </div>
+</div>

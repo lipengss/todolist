@@ -1,0 +1,68 @@
+<h2>简单滑条验证码 — 设计方案</h2>
+<p class="subtitle">拖动滑块到底即通过，替换当前 SVG 字符验证码</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前：SVG 字符验证码</div>
+    <div class="mockup-body" style="padding:16px;background:#1A1F2A;border-radius:12px;max-width:320px;">
+      <div style="color:#8892A4;font-size:12px;margin-bottom:4px;">验证码</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:6px;padding:8px;flex:1;color:#8892A4;font-size:12px;">输入验证码</div>
+        <div style="width:70px;height:36px;background:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:bold;color:#333;letter-spacing:2px;">K7xQ</div>
+      </div>
+      <div style="color:#6b7280;font-size:10px;">看不清？点击图片刷新</div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">新设计：滑块验证</div>
+    <div class="mockup-body" style="padding:16px;background:#1A1F2A;border-radius:12px;max-width:320px;">
+      <div style="color:#8892A4;font-size:12px;margin-bottom:4px;">安全验证</div>
+      <div style="background:#0F1419;border:1px solid #2A2F3E;border-radius:6px;height:40px;position:relative;overflow:hidden;">
+        <div id="slider-bg" style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#8B5CF6,#a78bfa);border-radius:6px 0 0 6px;transition:width 0.05s;width:0;"></div>
+        <div id="slider-thumb" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:44px;height:36px;background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;cursor:grab;">
+          <span style="font-size:17px;color:#8B5CF6;user-select:none;">→</span>
+        </div>
+        <div style="position:absolute;right:0;top:0;height:100%;display:flex;align-items:center;padding-right:16px;color:#6b7280;font-size:11px;pointer-events:none;user-select:none;">
+          拖动滑块完成验证
+        </div>
+      </div>
+      <div style="color:#22c55e;font-size:10px;margin-top:4px;display:none;">验证通过</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>交互流程</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#E8EDF4;font-size:13px;line-height:2;">
+    1. 页面加载 → 调用 <code style="color:#8B5CF6;">GET /api/auth/captcha</code> 获取 sliderToken<br>
+    2. 用户 <strong>按住滑块</strong> → 开始拖动 → 滑块跟随鼠标/touch 移动<br>
+    3. 滑块 <strong>到达最右端</strong> → 锁定位置 → 显示 "验证通过" + 绿色对勾<br>
+    4. 用户提交登录 → sliderToken + 登录凭据一起发送<br>
+    5. 后端校验：token 存在 + 未过期 + 时间差 ≥ 800ms（防止脚本秒过）
+  </div>
+</div>
+
+<div class="section">
+  <h3>后端变更</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#8892A4;font-size:13px;line-height:1.8;">
+    <code style="color:#8B5CF6;">GET /api/auth/captcha</code> → <code style="color:#8B5CF6;">{ token }</code><br>
+    <small style="color:#6b7280;">• 后端只返回一个 UUID token，不生成图片，极简</small><br>
+    <small style="color:#6b7280;">• 内存存储 token → timestamp（5分钟过期）</small><br><br>
+    <code style="color:#8B5CF6;">POST /api/auth/login</code> + <code style="color:#8B5CF6;">sliderToken</code><br>
+    <small style="color:#6b7280;">• 校验：token 存在 + now - createdAt ≥ 800ms + 未过期</small><br>
+    <small style="color:#6b7280;">• 通过后删除 token，防止重用</small>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>优点</h4><ul>
+    <li>零看不清问题，操作直觉</li>
+    <li>后端无需生成图片，代码更少</li>
+    <li>移动端友好（拖拽手势天然支持）</li>
+  </ul></div>
+  <div class="cons"><h4>注意</h4><ul>
+    <li>需处理 touch + mouse 双事件</li>
+    <li>小于 800ms 的提交会被拒绝</li>
+  </ul></div>
+</div>

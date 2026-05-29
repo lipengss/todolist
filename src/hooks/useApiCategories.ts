@@ -9,7 +9,12 @@ export function useApiCategories() {
 
   const load = useCallback(async () => {
     if (!isLoggedIn()) {
-      setCategories([]);
+      setCategories([
+        { id: "__guest_work", name: "工作", color: "bg-chart-1" },
+        { id: "__guest_study", name: "学习", color: "bg-chart-2" },
+        { id: "__guest_life", name: "生活", color: "bg-chart-3" },
+        { id: "__guest_health", name: "健康", color: "bg-chart-4" },
+      ]);
       setLoading(false);
       return;
     }

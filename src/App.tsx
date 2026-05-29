@@ -72,8 +72,8 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [userStorage, setUserStorage] = useState({ used: 0, limit: 1073741824 });
-  const { todos, loading, add: addTodoApi, update: updateTodoBase, softDelete: softDeleteTodo, removeMany: removeTodosApi } = useApiTodos();
-  const { categories: storedCategories, add: addCategory, update: updateCategory, remove: deleteCategory } = useApiCategories();
+  const { todos, loading, add: addTodoApi, update: updateTodoBase, softDelete: softDeleteTodo, removeMany: removeTodosApi, reload: reloadTodos } = useApiTodos();
+  const { categories: storedCategories, add: addCategory, update: updateCategory, remove: deleteCategory, reload: reloadCategories } = useApiCategories();
   type StatCardFilter = "pending" | "highPriority" | "dueSoon" | "completed";
 
   const [filter, setFilter] = useState<FilterType>("today");
@@ -263,6 +263,7 @@ export default function App() {
 
   const handleCreateTodo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!authenticated) { setLoginModalOpen(true); return; }
     const text = newTodo.text.trim();
     if (!text) return;
 
@@ -287,6 +288,7 @@ export default function App() {
 
   const handleCreateCategory = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!authenticated) { setLoginModalOpen(true); return; }
     const name = newCategoryName.trim();
     if (!name) return;
 
@@ -336,6 +338,7 @@ export default function App() {
   };
 
   const handleQuickAddTodo = (text: string, date: string) => {
+    if (!authenticated) { setLoginModalOpen(true); return; }
     addTodoApi({
       text,
       completed: false,
@@ -381,7 +384,8 @@ export default function App() {
         onLogin={() => {
           setAuthenticated(true);
           setLoginModalOpen(false);
-          window.location.reload();
+          reloadTodos();
+          reloadCategories();
         }}
       />
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
@@ -394,8 +398,8 @@ export default function App() {
           onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
           activeCategory={categoryFilter}
           onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
-          onCreateTodo={() => setCreateOpen(true)}
-          onCreateCategory={() => setCategoryOpen(true)}
+          onCreateTodo={() => { if (!authenticated) { setLoginModalOpen(true); return; } setCreateOpen(true); }}
+          onCreateCategory={() => { if (!authenticated) { setLoginModalOpen(true); return; } setCategoryOpen(true); }}
           onEditCategory={openEditCategory}
           onDeleteCategory={handleDeleteCategory}
           onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}

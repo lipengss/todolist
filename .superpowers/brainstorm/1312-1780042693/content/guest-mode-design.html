@@ -1,0 +1,112 @@
+<h2>三项优化方案</h2>
+<p class="subtitle">游客模式（完整登录弹窗） + 默认分类 + 存储空间</p>
+
+<div class="section">
+  <h3>1. 游客模式 — 主界面先展示，操作时弹窗登录</h3>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前：一进应用就强制登录</div>
+    <div class="mockup-body" style="padding:16px;background:#1A1F2A;border-radius:12px;">
+      <div style="text-align:center;padding:40px 0;">
+        <div style="color:#E8EDF4;font-size:14px;margin-bottom:8px;">FocusWorkspace</div>
+        <div style="color:#8892A4;font-size:11px;">登录以同步你的数据</div>
+        <div style="background:#0F1419;border:1px solid #2A2F3E;padding:8px;margin:12px 0;border-radius:6px;color:#8892A4;font-size:12px;">用户名</div>
+        <div style="background:#0F1419;border:1px solid #2A2F3E;padding:8px;margin-bottom:12px;border-radius:6px;color:#8892A4;font-size:12px;">密码</div>
+        <button class="mock-button" style="width:100%;background:#8B5CF6;">登录</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">新设计：游客浏览 → 操作触发弹窗</div>
+    <div class="mockup-body" style="padding:16px;background:#1A1F2A;border-radius:12px;position:relative;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <div class="mock-nav" style="flex:1;">FocusWorkspace</div>
+        <span style="color:#8892A4;font-size:10px;">未登录</span>
+        <button class="mock-button" style="font-size:10px;padding:3px 8px;">登录</button>
+      </div>
+      <div style="color:#8892A4;font-size:12px;text-align:center;padding:40px 0;">
+        你还没有任务<br/>
+        <span style="color:#8B5CF6;cursor:pointer;">+ 新建第一个任务</span>
+      </div>
+      <!-- Login Modal -->
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;border-radius:12px;">
+        <div style="background:#1A1F2A;border:1px solid #2A2F3E;border-radius:14px;padding:20px;width:290px;">
+          <div style="text-align:center;margin-bottom:14px;">
+            <div style="width:28px;height:28px;background:#8B5CF6;border-radius:8px;margin:0 auto 6px;"></div>
+            <div style="color:#E8EDF4;font-weight:600;font-size:14px;">登录</div>
+          </div>
+          <div style="background:#0F1419;border:1px solid #2A2F3E;padding:6px 10px;margin-bottom:6px;border-radius:6px;color:#8892A4;font-size:11px;">用户名</div>
+          <div style="background:#0F1419;border:1px solid #2A2F3E;padding:6px 10px;margin-bottom:6px;border-radius:6px;color:#8892A4;font-size:11px;">密码</div>
+          <div style="background:#0F1419;border:1px solid #2A2F3E;height:34px;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;padding:0 8px;">
+            <div style="width:36px;height:18px;background:#8B5CF6;border-radius:8px;"></div>
+            <span style="color:#8892A4;font-size:10px;margin-left:10px;">→ 拖动滑块完成验证</span>
+          </div>
+          <button class="mock-button" style="width:100%;background:#8B5CF6;color:#fff;padding:7px;border-radius:6px;font-size:12px;">登录</button>
+          <div style="text-align:center;margin-top:8px;">
+            <span style="color:#6b7280;font-size:10px;">没有账号？提交申请</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>弹窗 = LoginScreen 改 Modal 版，完整保留：</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#E8EDF4;font-size:13px;line-height:1.8;">
+    <ul style="margin:0;padding-left:18px;">
+      <li><strong>登录/注册切换</strong>：弹窗内 Tab 切换</li>
+      <li><strong>滑块验证码</strong>：登录模式才显示，完整拖动交互</li>
+      <li><strong>注册提交</strong>：切换到注册模式 → 填用户名密码 → 提交申请 → 显示"等待审批"</li>
+      <li><strong>关闭弹窗</strong>：点遮罩层或右上角 X 关闭，回到游客浏览状态</li>
+      <li><strong>登录成功</strong>：自动刷新数据（todos + categories），弹窗关闭</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <h3>触发登录弹窗的操作：</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#E8EDF4;font-size:13px;line-height:1.8;">
+    <ul style="margin:0;padding-left:18px;">
+      <li>点「新建任务」按钮</li>
+      <li>在 QuickAddBar 输入文字回车</li>
+      <li>点任务完成/星标/编辑/删除操作</li>
+      <li>点日历视图双击创建任务</li>
+      <li>点分类管理（新建/编辑/删除分类）</li>
+      <li>修改设置</li>
+      <li>顶部「登录」按钮（手动触发）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. 默认分类 — 新用户审批通过后自动创建</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#E8EDF4;font-size:13px;line-height:1.8;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <span style="background:#3b82f6;color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;">工作</span>
+      <span style="background:#22c55e;color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;">学习</span>
+      <span style="background:#f59e0b;color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;">生活</span>
+      <span style="background:#ef4444;color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;">健康</span>
+    </div>
+    在 <code style="color:#8B5CF6;">approveRegistration()</code> 中，创建 User 后批量插入 4 条 Category。
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 存储空间 — 侧边栏底部常驻</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="color:#8892A4;font-size:11px;">已用空间</span>
+      <span style="color:#E8EDF4;font-size:11px;">12MB / 1GB</span>
+    </div>
+    <div style="height:4px;background:#2A2F3E;border-radius:2px;overflow:hidden;">
+      <div style="height:100%;width:1.2%;background:linear-gradient(90deg,#8B5CF6,#a78bfa);border-radius:2px;"></div>
+    </div>
+    <p class="subtitle" style="margin-top:4px;">
+      User 模型新增 <code>storageUsed</code> 字段；每次 CRUD 操作更新；仅展示不强制限制
+    </p>
+  </div>
+</div>

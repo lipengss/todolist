@@ -1,0 +1,69 @@
+<h2>滑块验证码：两种方案</h2>
+<p class="subtitle">替换 SVG 字符验证码，零第三方依赖，自托管</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>拼图滑块验证</h3>
+      <p>拖动拼图块到缺口位置对齐。类似阿里云/腾讯云滑块验证。</p>
+      <div style="margin-top:8px;display:flex;gap:3px;align-items:center;background:#1A1F2A;border-radius:8px;padding:8px 12px;">
+        <div style="flex:1;height:40px;background:#2A2F3E;border-radius:4px;position:relative;overflow:hidden;">
+          <div style="position:absolute;width:100%;height:100%;background:linear-gradient(90deg,#1e3a5f 0%,#2a5f3a 50%,#5f3a1e 100%);"></div>
+          <div style="position:absolute;left:48px;top:6px;width:28px;height:28px;border:2px dashed rgba(255,255,255,0.6);border-radius:3px;"></div>
+          <div style="position:absolute;left:3px;top:6px;width:28px;height:28px;background:rgba(139,92,246,0.9);border-radius:3px;box-shadow:0 0 8px rgba(139,92,246,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">→</div>
+        </div>
+      </div>
+      <p class="subtitle" style="margin-top:4px;">原理：后端发一张带缺口的背景图 + 拼图块位置 → 用户拖动滑块对齐 → 前端发回滑块最终位置 → 后端校验误差</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>简单滑条验证</h3>
+      <p>拖动滑条从左到右到底即通过。检测人类行为而非视觉识别。</p>
+      <div style="margin-top:8px;background:#1A1F2A;border-radius:8px;padding:10px 16px;">
+        <div style="background:#2A2F3E;height:40px;border-radius:20px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;width:25%;height:100%;background:linear-gradient(90deg,#8B5CF6,#a78bfa);border-radius:20px 0 0 20px;"></div>
+          <div style="position:absolute;left:20%;top:2px;width:36px;height:36px;background:#fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">→</div>
+          <div style="position:absolute;right:12px;top:12px;color:#6b7280;font-size:11px;">→ 拖动到最右边</div>
+        </div>
+      </div>
+      <p class="subtitle" style="margin-top:4px;">原理：用户拖动到底 → 后端检测滑动轨迹（速度、加速度、停顿点）→ 判断是否为人类操作</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>对比</h3>
+  <div style="background:#1A1F2A;border-radius:8px;padding:16px;color:#8892A4;font-size:13px;line-height:1.8;">
+    <table style="width:100%;border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #2A2F3E;">
+        <th style="text-align:left;padding:6px 8px;color:#E8EDF4;"></th>
+        <th style="text-align:left;padding:6px 8px;color:#E8EDF4;">A. 拼图滑块</th>
+        <th style="text-align:left;padding:6px 8px;color:#E8EDF4;">B. 简单滑条</th>
+      </tr>
+      <tr style="border-bottom:1px solid #2A2F3E;">
+        <td style="padding:6px 8px;">安全性</td>
+        <td style="padding:6px 8px;color:#22c55e;">高，需匹配位置</td>
+        <td style="padding:6px 8px;color:#eab308;">中，靠行为检测</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2A2F3E;">
+        <td style="padding:6px 8px;">实现复杂度</td>
+        <td style="padding:6px 8px;color:#eab308;">中，需图片处理</td>
+        <td style="padding:6px 8px;color:#22c55e;">低，纯前端交互</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2A2F3E;">
+        <td style="padding:6px 8px;">后端依赖</td>
+        <td style="padding:6px 8px;">需要 sharp/canvas 生成图片</td>
+        <td style="padding:6px 8px;color:#22c55e;">仅需记录滑动 token</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 8px;">用户体验</td>
+        <td style="padding:6px 8px;">"对齐拼图"直观</td>
+        <td style="padding:6px 8px;">"滑到底"简单</td>
+      </tr>
+    </table>
+  </div>
+</div>
