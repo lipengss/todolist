@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { login, register } from "../api/auth";
+import { useState, useEffect, useRef } from "react";
+import { login, register, fetchCaptcha } from "../api/auth";
 import { CheckCircle } from "lucide-react";
 
 interface LoginScreenProps {
@@ -10,9 +10,33 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaSvg, setCaptchaSvg] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaText, setCaptchaText] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const lastClickRef = useRef(0);
+
+  const loadCaptcha = async () => {
+    try {
+      const data = await fetchCaptcha();
+      setCaptchaSvg(data.svg);
+      setCaptchaToken(data.token);
+      setCaptchaText("");
+    } catch {
+      // silent
+    }
+  };
+
+  useEffect(() => { loadCaptcha(); }, []);
+
+  const handleCaptchaClick = () => {
+    const now = Date.now();
+    if (now - lastClickRef.current < 500) return;
+    lastClickRef.current = now;
+    loadCaptcha();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,15 +47,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         await register(username, password);
         setSubmitted(true);
       } else {
-        await login(username, password);
+        await login(username, password, captchaToken, captchaText);
         onLogin();
       }
     } catch (err: any) {
       const msg = err?.message || "";
-      if (msg.includes("审批中")) setError("你的申请正在审批中，请等待管理员通过");
-      else if (msg.includes("400")) setError("你已提交过申请，请等待审批");
-      else if (msg.includes("401")) setError("用户名或密码错误");
-      else setError(isRegister ? "注册失败，请重试" : "登录失败，请重试");
+      if (msg.includes("验证码")) {
+        setError("验证码错误或已过期");
+        loadCaptcha();
+      } else if (msg.includes("审批中")) {
+        setError("你的申请正在审批中，请等待管理员通过");
+      } else if (msg.includes("400")) {
+        setError("你已提交过申请，请等待审批");
+      } else if (msg.includes("401")) {
+        setError("用户名或密码错误");
+      } else {
+        setError(isRegister ? "注册失败，请重试" : "登录失败，请重试");
+      }
     } finally {
       setLoading(false);
     }
@@ -99,11 +131,33 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               placeholder={isRegister ? "输入密码（至少3个字符）" : "输入密码"}
             />
           </div>
+
+          {!isRegister && captchaSvg && (
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1.5">验证码</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  value={captchaText}
+                  onChange={(e) => setCaptchaText(e.target.value)}
+                  className="flex-1 h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
+                  placeholder="输入验证码"
+                  maxLength={4}
+                />
+                <div
+                  onClick={handleCaptchaClick}
+                  className="flex-shrink-0 w-[82px] h-[42px] rounded-lg border border-border hover:border-primary cursor-pointer transition-colors overflow-hidden bg-white flex items-center justify-center"
+                  title="看不清？点击图片刷新"
+                  dangerouslySetInnerHTML={{ __html: captchaSvg }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1.5">看不清？点击图片刷新</p>
+            </div>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={loading || !username || !password}
+          disabled={loading || !username || !password || (!isRegister && !captchaText)}
           className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           {loading ? (isRegister ? "提交中..." : "登录中...") : (isRegister ? "提交申请" : "登录")}
