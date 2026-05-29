@@ -43,3 +43,14 @@ export function logout() {
 export async function fetchCaptcha() {
   return apiFetch<{ svg: string; token: string }>("/auth/captcha");
 }
+
+export function getUserRole(): string | null {
+  const token = localStorage.getItem("fw_token");
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role || "user";
+  } catch {
+    return null;
+  }
+}

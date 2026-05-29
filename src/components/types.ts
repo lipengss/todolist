@@ -24,7 +24,7 @@ export interface Todo {
   recurrence?: Recurrence;
 }
 
-export type FilterType = "calendar" | "today" | "planned" | "inbox" | "all" | "completed" | "trash" | "stats";
+export type FilterType = "calendar" | "today" | "planned" | "inbox" | "all" | "completed" | "trash" | "stats" | "approvals";
 
 export type PriorityFilter = "all" | Priority;
 

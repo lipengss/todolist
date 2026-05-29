@@ -21,13 +21,13 @@ import { TimePicker } from "./components/ui/TimePicker";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
 import { getSettings, updateSettings } from "./hooks/useSettings";
-import { RegistrationManager } from "./components/RegistrationManager";
+import { ApprovalPage } from "./components/ApprovalPage";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
 import { useApiTodos } from "./hooks/useApiTodos";
 import { useApiCategories } from "./hooks/useApiCategories";
 import { LoginScreen } from "./components/LoginScreen";
-import { isLoggedIn, logout } from "./api/auth";
+import { isLoggedIn, logout, getUserRole, getRegistrations } from "./api/auth";
 import { type StoredCategory } from "./hooks/useCategories";
 
 const CATEGORY_STYLES: Record<string, string> = {
@@ -90,6 +90,17 @@ export default function App() {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [settingsForm, setSettingsForm] = useState(getSettings);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const userRole = getUserRole();
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+
+  useEffect(() => {
+    if (userRole === "admin") {
+      getRegistrations().then(list => {
+        setPendingApprovalCount(list.filter(r => r.status === "pending").length);
+      }).catch(() => {});
+    }
+  }, [userRole, authenticated]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportData = () => {
@@ -335,6 +346,7 @@ export default function App() {
     completed: "已完成",
     trash: "垃圾箱",
     stats: "统计",
+    approvals: "用户审批",
   };
 
   const formattedDate = (() => {
@@ -370,6 +382,8 @@ export default function App() {
           onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}
           categories={categories}
           stats={stats}
+          pendingApprovalCount={pendingApprovalCount}
+          userRole={userRole}
         />
       )}
 
@@ -398,6 +412,10 @@ export default function App() {
             onToggle={(id) => updateTodoBase(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
             onAddTodo={handleQuickAddTodo}
           />
+        ) : filter === "approvals" ? (
+          <div className="flex-1 min-w-0">
+            <ApprovalPage />
+          </div>
         ) : filter === "stats" ? (
           <StatsView todos={activeTodos} categoryMap={categoryById} />
         ) : (
@@ -738,8 +756,6 @@ export default function App() {
               />
             </div>
           )}
-
-          <RegistrationManager />
 
           <div className="pt-4 border-t border-border space-y-3">
             <span className="text-sm text-muted-foreground">数据管理</span>

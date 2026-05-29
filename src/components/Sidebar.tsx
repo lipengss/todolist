@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane, Users } from "lucide-react";
 import { useState } from "react";
 import { Category, FilterType } from "./types";
 import { ScrollArea } from "./ui/ScrollArea";
@@ -25,6 +25,8 @@ interface SidebarProps {
     dueSoonCount?: number;
     completedCount?: number;
   };
+  pendingApprovalCount?: number;
+  userRole?: string | null;
 }
 
 export function Sidebar({
@@ -39,6 +41,8 @@ export function Sidebar({
   onOpenSettings,
   categories,
   stats,
+  pendingApprovalCount = 0,
+  userRole = null,
 }: SidebarProps) {
   const [categoryEditMode, setCategoryEditMode] = useState(false);
   const mainViews: { id: FilterType; label: string; icon: typeof CalendarDays; count?: number }[] = [
@@ -182,6 +186,28 @@ export function Sidebar({
               ))}
             </div>
           </section>
+
+          {userRole === "admin" && (
+            <section className="space-y-1">
+              <button
+                type="button"
+                onClick={() => onFilterChange("approvals")}
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeFilter === "approvals" ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5" />
+                  <span>用户审批</span>
+                </div>
+                {pendingApprovalCount > 0 && (
+                  <span className="bg-chart-4 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {pendingApprovalCount}
+                  </span>
+                )}
+              </button>
+            </section>
+          )}
 
           <section className="space-y-1 pt-4 border-t border-border">
             {bottomViews.map((view) => (
