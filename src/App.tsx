@@ -26,7 +26,7 @@ import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
 import { useApiTodos } from "./hooks/useApiTodos";
 import { useApiCategories } from "./hooks/useApiCategories";
-import { LoginScreen } from "./components/LoginScreen";
+import { LoginModal } from "./components/LoginScreen";
 import { isLoggedIn, logout, getUserRole, getRegistrations } from "./api/auth";
 import { type StoredCategory } from "./hooks/useCategories";
 
@@ -363,11 +363,10 @@ export default function App() {
     );
   }
 
-  if (!authenticated) {
-    return <LoginScreen onLogin={() => setAuthenticated(true)} />;
-  }
-
   return (
+    <>
+      {!authenticated && <LoginModal open={!authenticated} onClose={() => {}} onLogin={() => setAuthenticated(true)} />}
+      {authenticated && (
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
       {!sidebarCollapsed && (
         <Sidebar
@@ -806,5 +805,7 @@ export default function App() {
         </FormPrimitive.Form>
       </Modal>
     </div>
+      )}
+    </>
   );
 }

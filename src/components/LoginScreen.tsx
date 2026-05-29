@@ -1,73 +1,91 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { login, register, fetchCaptcha } from "../api/auth";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, X } from "lucide-react";
 
-interface LoginScreenProps {
+interface LoginModalProps {
+  open: boolean;
+  onClose: () => void;
   onLogin: () => void;
 }
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [sliderState, setSliderState] = useState<"idle" | "sliding" | "verified" | "failed">("idle");
-  const [sliderX, setSliderX] = useState(0);
+  const [sliderToken, setSliderToken] = useState("");
+  const [sliderDone, setSliderDone] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const captchaStartRef = useRef(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const trackWidthRef = useRef(0);
 
-  const resetSlider = useCallback(() => {
-    setSliderState("idle");
-    setSliderX(0);
-    setCaptchaToken("");
-    captchaStartRef.current = 0;
-  }, []);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const [thumbLeft, setThumbLeft] = useState(0);
 
-  const handleSliderStart = async (_clientX: number) => {
-    if (sliderState === "verified" || sliderState === "sliding") return;
-    setSliderState("sliding");
-    captchaStartRef.current = Date.now();
+  const loadCaptcha = async () => {
     try {
       const data = await fetchCaptcha();
-      setCaptchaToken(data.token);
-    } catch {
-      resetSlider();
-    }
+      setSliderToken(data.token);
+      setThumbLeft(0);
+      setSliderDone(false);
+    } catch {}
   };
 
-  const handleSliderMove = (clientX: number, rect: DOMRect) => {
-    if (sliderState !== "sliding") return;
-    const x = Math.max(0, Math.min(clientX - rect.left - 22, trackWidthRef.current));
-    setSliderX(x);
+  useEffect(() => { if (open) { loadCaptcha(); setError(""); setIsRegister(false); setSubmitted(false); } }, [open]);
+
+  const maxTravel = () => {
+    const track = trackRef.current;
+    if (!track) return 200;
+    return track.clientWidth - 44;
   };
 
-  const handleSliderEnd = () => {
-    if (sliderState !== "sliding") return;
-    const duration = Date.now() - captchaStartRef.current;
-    const maxX = trackWidthRef.current;
-    if (sliderX >= maxX * 0.9 && duration >= 800) {
-      setSliderState("verified");
-      setSliderX(maxX);
-    } else {
-      setSliderState("failed");
-      setTimeout(resetSlider, 600);
+  const onStart = useCallback((clientX: number) => {
+    if (sliderDone) return;
+    dragging.current = true;
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const x = clientX - rect.left - 22;
+    setThumbLeft(Math.max(0, Math.min(x, maxTravel())));
+  }, [sliderDone]);
+
+  const onMove = useCallback((clientX: number) => {
+    if (!dragging.current || sliderDone) return;
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const x = clientX - rect.left - 22;
+    const pos = Math.max(0, Math.min(x, maxTravel()));
+    setThumbLeft(pos);
+    if (pos >= maxTravel() - 2) {
+      dragging.current = false;
+      setThumbLeft(maxTravel());
+      setSliderDone(true);
     }
-  };
+  }, [sliderDone]);
+
+  const onEnd = useCallback(() => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    if (!sliderDone) setThumbLeft(0);
+  }, [sliderDone]);
 
   useEffect(() => {
-    const slider = sliderRef.current;
-    if (!slider) return;
-    const updateWidth = () => {
-      trackWidthRef.current = (slider.querySelector("[data-track]") as HTMLElement)?.clientWidth ?? 0;
+    const mm = (e: MouseEvent) => onMove(e.clientX);
+    const mu = () => onEnd();
+    const tm = (e: TouchEvent) => onMove(e.touches[0].clientX);
+    const te = () => onEnd();
+    document.addEventListener("mousemove", mm);
+    document.addEventListener("mouseup", mu);
+    document.addEventListener("touchmove", tm);
+    document.addEventListener("touchend", te);
+    return () => {
+      document.removeEventListener("mousemove", mm);
+      document.removeEventListener("mouseup", mu);
+      document.removeEventListener("touchmove", tm);
+      document.removeEventListener("touchend", te);
     };
-    updateWidth();
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
+  }, [onMove, onEnd]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,14 +96,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         await register(username, password);
         setSubmitted(true);
       } else {
-        await login(username, password, captchaToken);
+        await login(username, password, sliderToken);
         onLogin();
       }
     } catch (err: any) {
       const msg = err?.message || "";
       if (msg.includes("验证码")) {
-        setError("验证码错误或已过期");
-        resetSlider();
+        setError("验证码错误或已过期，请重新滑动");
+        loadCaptcha();
       } else if (msg.includes("审批中")) {
         setError("你的申请正在审批中，请等待管理员通过");
       } else if (msg.includes("400")) {
@@ -100,149 +118,114 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-8 space-y-6 text-center">
-          <div className="w-12 h-12 bg-chart-3 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-7 h-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-xl font-semibold text-foreground">申请已提交</h1>
-          <p className="text-sm text-muted-foreground">
-            你的注册申请已提交，等待管理员审批后即可登录。
-          </p>
-          <button
-            onClick={() => { setIsRegister(false); setSubmitted(false); setUsername(""); setPassword(""); }}
-            className="text-sm text-primary hover:underline"
-          >
-            返回登录
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!open) return null;
 
   return (
-    <div className="h-screen flex items-center justify-center bg-background">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-card border border-border rounded-2xl p-8 space-y-6">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-7 h-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-xl font-semibold text-foreground">FocusWorkspace</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isRegister ? "创建账号，等待管理员审批" : "登录以同步你的数据"}
-          </p>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60" onClick={() => { if (!loading) onClose(); }} />
 
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg px-4 py-3">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm text-muted-foreground block mb-1.5">用户名</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
-              placeholder="输入用户名（至少2个字符）"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground block mb-1.5">密码</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
-              placeholder={isRegister ? "输入密码（至少3个字符）" : "输入密码"}
-            />
-          </div>
-
-          {!isRegister && (
-            <div>
-              <label className="text-sm text-muted-foreground block mb-1.5">验证码</label>
-              <div
-                ref={sliderRef}
-                className="relative w-full h-11 rounded-lg bg-muted select-none overflow-hidden cursor-pointer"
-                onMouseDown={(e) => { e.preventDefault(); handleSliderStart(e.clientX); }}
-                onMouseMove={(e) => { if (sliderState === "sliding") { const r = e.currentTarget.getBoundingClientRect(); handleSliderMove(e.clientX, r); } }}
-                onMouseUp={handleSliderEnd}
-                onMouseLeave={() => { if (sliderState === "sliding") handleSliderEnd(); }}
-                onTouchStart={(e) => { e.preventDefault(); handleSliderStart(e.touches[0].clientX); }}
-                onTouchMove={(e) => { if (sliderState === "sliding") { const r = e.currentTarget.getBoundingClientRect(); handleSliderMove(e.touches[0].clientX, r); } }}
-                onTouchEnd={handleSliderEnd}
-              >
-                <div
-                  data-track
-                  className="absolute inset-0 rounded-lg transition-colors"
-                  style={{
-                    background:
-                      sliderState === "verified" ? "oklch(0.65 0.2 160)" :
-                      sliderState === "failed" ? "oklch(0.65 0.2 30)" :
-                      "oklch(0.87 0 0)",
-                  }}
-                />
-                {sliderState === "verified" && (
-                  <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-primary-foreground">
-                    验证通过
-                  </span>
-                )}
-                {sliderState === "failed" && (
-                  <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-primary-foreground">
-                    验证失败，请重试
-                  </span>
-                )}
-                {sliderState === "idle" && (
-                  <span className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
-                    请按住滑块拖动到最右侧
-                  </span>
-                )}
-                {sliderState === "sliding" && (
-                  <span className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
-                    请继续拖动...
-                  </span>
-                )}
-                <div
-                  className="absolute top-0.5 left-0.5 w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center shadow-sm transition-[background-color]"
-                  style={{
-                    transform: `translateX(${sliderX}px)`,
-                    background: sliderState === "verified" ? "oklch(0.65 0.2 160)" : sliderState === "failed" ? "oklch(0.65 0.2 30)" : undefined,
-                  }}
-                >
-                  {sliderState === "verified" ? (
-                    <CheckCircle className="w-4 h-4 text-primary-foreground" />
-                  ) : (
-                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-2xl p-8 mx-4 z-10">
         <button
-          type="submit"
-          disabled={loading || !username || !password || (!isRegister && sliderState !== "verified")}
-          className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+          onClick={onClose}
+          disabled={loading}
+          className="absolute top-4 right-4 p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
         >
-          {loading ? (isRegister ? "提交中..." : "登录中...") : (isRegister ? "提交申请" : "登录")}
+          <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => { setIsRegister(!isRegister); setError(""); }}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {isRegister ? "已有账号？去登录" : "没有账号？提交申请"}
-          </button>
-        </div>
-      </form>
+        {submitted ? (
+          <div className="text-center space-y-4 py-4">
+            <div className="w-12 h-12 bg-chart-3 rounded-xl flex items-center justify-center mx-auto">
+              <CheckCircle className="w-7 h-7 text-primary-foreground" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">申请已提交</h2>
+            <p className="text-sm text-muted-foreground">等待管理员审批后即可登录。</p>
+            <button onClick={() => { setSubmitted(false); setIsRegister(false); }} className="text-sm text-primary hover:underline">
+              返回登录
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="text-center">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
+                <CheckCircle className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">
+                {isRegister ? "提交注册申请" : "登录"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isRegister ? "创建账号，等待管理员审批" : "登录后同步你的数据"}
+              </p>
+            </div>
+
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg px-3 py-2">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
+                placeholder="用户名"
+                autoFocus
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
+                placeholder="密码（至少3个字符）"
+              />
+
+              {!isRegister && (
+                <div>
+                  <div ref={trackRef} className="relative h-10 rounded-lg border border-border bg-muted/30 select-none overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/70 rounded-lg transition-all duration-75"
+                      style={{ width: Math.max(0, thumbLeft + 22) }} />
+                    <div
+                      onMouseDown={(e) => onStart(e.clientX)}
+                      onTouchStart={(e) => onStart(e.touches[0].clientX)}
+                      className={`absolute top-1/2 -translate-y-1/2 w-10 h-8 bg-white rounded shadow flex items-center justify-center cursor-grab ${
+                        sliderDone ? "bg-chart-3 text-white cursor-default" : ""
+                      }`}
+                      style={{ left: thumbLeft }}
+                    >
+                      {sliderDone ? <CheckCircle className="w-4 h-4" /> : <ArrowRight className="w-4 h-4 text-primary" />}
+                    </div>
+                    {!sliderDone && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <span className="text-xs text-muted-foreground">拖动滑块完成验证</span>
+                      </div>
+                    )}
+                    {sliderDone && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <span className="text-xs text-chart-3">验证通过</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button type="submit"
+              disabled={loading || !username || !password || (!isRegister && !sliderDone)}
+              className="w-full h-10 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity text-sm">
+              {loading ? (isRegister ? "提交中..." : "登录中...") : (isRegister ? "提交申请" : "登录")}
+            </button>
+
+            <div className="text-center">
+              <button type="button"
+                onClick={() => { setIsRegister(!isRegister); setError(""); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {isRegister ? "已有账号？去登录" : "没有账号？提交申请"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
