@@ -20,7 +20,7 @@ export class TodosService {
       resolvedCategoryId = category ? category.id : undefined;
     }
 
-    return this.prisma.todo.create({
+    const todo = await this.prisma.todo.create({
       data: {
         ...data,
         subtasks: subtasks ? { create: subtasks } : undefined,
@@ -28,9 +28,13 @@ export class TodosService {
       },
       include: { subtasks: true, category: true },
     });
+
+    await this.recalcStorage();
+
+    return todo;
   }
 
-  update(id: string, dto: UpdateTodoDto) {
+  async update(id: string, dto: UpdateTodoDto) {
     const { subtasks, ...data } = dto;
     const updateData: any = { ...data };
 
@@ -41,22 +45,40 @@ export class TodosService {
       };
     }
 
-    return this.prisma.todo.update({
+    const todo = await this.prisma.todo.update({
       where: { id },
       data: updateData,
       include: { subtasks: true, category: true },
     });
+
+    await this.recalcStorage();
+
+    return todo;
   }
 
-  softDelete(id: string) {
-    return this.prisma.todo.update({
+  async softDelete(id: string) {
+    const todo = await this.prisma.todo.update({
       where: { id },
       data: { deletedAt: new Date().toISOString() },
       include: { subtasks: true, category: true },
     });
+
+    await this.recalcStorage();
+
+    return todo;
   }
 
   remove(id: string) {
     return this.prisma.todo.delete({ where: { id } });
+  }
+
+  private async recalcStorage() {
+    const todoCount = await this.prisma.todo.count();
+    const subtaskCount = await this.prisma.subtask.count();
+    const totalItems = todoCount + subtaskCount;
+    const estimatedBytes = totalItems * 2048;
+    await this.prisma.user.updateMany({
+      data: { storageUsed: estimatedBytes },
+    });
   }
 }
