@@ -14,6 +14,8 @@ interface HeaderProps {
   onDueFilterChange: (value: DueFilter) => void;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
+  authenticated?: boolean;
+  onLoginClick?: () => void;
 }
 
 export function Header({
@@ -27,6 +29,8 @@ export function Header({
   onDueFilterChange,
   sidebarCollapsed,
   onToggleSidebar,
+  authenticated,
+  onLoginClick,
 }: HeaderProps) {
   return (
     <header className="border-b border-border px-8 py-6 flex items-center justify-between gap-6 bg-background/95">
@@ -85,6 +89,15 @@ export function Header({
             ]}
           />
         </div>
+
+        {!authenticated && (
+          <button
+            onClick={onLoginClick}
+            className="text-xs text-primary hover:underline flex-shrink-0"
+          >
+            登录
+          </button>
+        )}
       </div>
     </header>
   );

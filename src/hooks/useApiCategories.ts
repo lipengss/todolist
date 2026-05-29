@@ -1,12 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from "../api/categories";
 import { StoredCategory } from "./useCategories";
+import { isLoggedIn } from "../api/auth";
 
 export function useApiCategories() {
   const [categories, setCategories] = useState<StoredCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (!isLoggedIn()) {
+      setCategories([]);
+      setLoading(false);
+      return;
+    }
     try {
       const data = await fetchCategories();
       setCategories(data.map((c: any) => ({

@@ -27,6 +27,9 @@ interface SidebarProps {
   };
   pendingApprovalCount?: number;
   userRole?: string | null;
+  authenticated?: boolean;
+  storageUsed?: number;
+  storageLimit?: number;
 }
 
 export function Sidebar({
@@ -43,6 +46,9 @@ export function Sidebar({
   stats,
   pendingApprovalCount = 0,
   userRole = null,
+  authenticated: _authenticated,
+  storageUsed: _storageUsed,
+  storageLimit: _storageLimit,
 }: SidebarProps) {
   const [categoryEditMode, setCategoryEditMode] = useState(false);
   const mainViews: { id: FilterType; label: string; icon: typeof CalendarDays; count?: number }[] = [

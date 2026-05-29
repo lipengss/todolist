@@ -1,12 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { Todo } from "../components/types";
 import { fetchTodos, createTodo, updateTodo, softDeleteTodo } from "../api/todos";
+import { isLoggedIn } from "../api/auth";
 
 export function useApiTodos() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (!isLoggedIn()) {
+      setTodos([]);
+      setLoading(false);
+      return;
+    }
     try {
       const data = await fetchTodos();
       setTodos(data);

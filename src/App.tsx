@@ -27,7 +27,7 @@ import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
 import { useApiTodos } from "./hooks/useApiTodos";
 import { useApiCategories } from "./hooks/useApiCategories";
 import { LoginModal } from "./components/LoginScreen";
-import { isLoggedIn, logout, getUserRole, getRegistrations } from "./api/auth";
+import { isLoggedIn, logout, getUserRole, getRegistrations, getMe } from "./api/auth";
 import { type StoredCategory } from "./hooks/useCategories";
 
 const CATEGORY_STYLES: Record<string, string> = {
@@ -70,6 +70,8 @@ function isDueSoon(todo: Todo) {
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [userStorage, setUserStorage] = useState({ used: 0, limit: 1073741824 });
   const { todos, loading, add: addTodoApi, update: updateTodoBase, softDelete: softDeleteTodo, removeMany: removeTodosApi } = useApiTodos();
   const { categories: storedCategories, add: addCategory, update: updateCategory, remove: deleteCategory } = useApiCategories();
   type StatCardFilter = "pending" | "highPriority" | "dueSoon" | "completed";
@@ -92,6 +94,14 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const userRole = getUserRole();
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+
+  useEffect(() => {
+    if (authenticated) {
+      getMe().then(info => {
+        setUserStorage({ used: info.storageUsed, limit: info.storageLimit });
+      }).catch(() => {});
+    }
+  }, [authenticated]);
 
   useEffect(() => {
     if (userRole === "admin") {
@@ -365,11 +375,21 @@ export default function App() {
 
   return (
     <>
-      {!authenticated && <LoginModal open={!authenticated} onClose={() => {}} onLogin={() => setAuthenticated(true)} />}
-      {authenticated && (
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onLogin={() => {
+          setAuthenticated(true);
+          setLoginModalOpen(false);
+          window.location.reload();
+        }}
+      />
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
       {!sidebarCollapsed && (
         <Sidebar
+          authenticated={authenticated}
+          storageUsed={userStorage.used}
+          storageLimit={userStorage.limit}
           activeFilter={filter}
           onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
           activeCategory={categoryFilter}
@@ -399,6 +419,8 @@ export default function App() {
             onDueFilterChange={setDueFilter}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
+            authenticated={authenticated}
+            onLoginClick={() => setLoginModalOpen(true)}
           />
         </div>
 
@@ -805,7 +827,6 @@ export default function App() {
         </FormPrimitive.Form>
       </Modal>
     </div>
-      )}
     </>
   );
 }
