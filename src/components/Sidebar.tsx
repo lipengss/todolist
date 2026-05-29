@@ -3,6 +3,13 @@ import { useState } from "react";
 import { Category, FilterType } from "./types";
 import { ScrollArea } from "./ui/ScrollArea";
 
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return bytes + "B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + "KB";
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + "MB";
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + "GB";
+}
+
 interface SidebarProps {
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
@@ -46,9 +53,9 @@ export function Sidebar({
   stats,
   pendingApprovalCount = 0,
   userRole = null,
-  authenticated: _authenticated,
-  storageUsed: _storageUsed,
-  storageLimit: _storageLimit,
+  authenticated = false,
+  storageUsed = 0,
+  storageLimit = 1073741824,
 }: SidebarProps) {
   const [categoryEditMode, setCategoryEditMode] = useState(false);
   const mainViews: { id: FilterType; label: string; icon: typeof CalendarDays; count?: number }[] = [
@@ -235,6 +242,23 @@ export function Sidebar({
           </section>
         </div>
       </ScrollArea>
+
+      {authenticated && (
+        <div className="px-6 pb-4 flex-shrink-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-sidebar-foreground">存储空间</span>
+            <span className="text-xs text-sidebar-foreground">
+              {formatSize(storageUsed)} / {formatSize(storageLimit)}
+            </span>
+          </div>
+          <div className="h-1 bg-sidebar-accent rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${Math.min(100, (storageUsed / storageLimit) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
