@@ -1,29 +1,24 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: focusworkspace
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
-      POSTGRES_DB: focusworkspace
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
-
   server:
     build:
       context: ./server
-    ports:
-      - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://focusworkspace:${DB_PASSWORD:-changeme}@db:5432/focusworkspace
       JWT_SECRET: ${JWT_SECRET:-change-me-to-a-random-string}
       AUTH_USERNAME: ${AUTH_USERNAME:-admin}
       AUTH_PASSWORD: ${AUTH_PASSWORD:-admin}
+    volumes:
+      - sqlite-data:/app/prisma
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "${PORT:-80}:80"
     depends_on:
-      - db
+      - server
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  sqlite-data:

@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+server/node_modules
+server/dist
+release
+*.md
+.DS_Store
