@@ -98,6 +98,20 @@ export class AuthService implements OnModuleInit {
       data: { username: req.username, password: req.password, createdAt: new Date().toISOString() },
     });
     await this.prisma.registrationRequest.update({ where: { id }, data: { status: "approved" } });
+
+    // Create default categories for new user
+    const defaultCategories = [
+      { name: "工作", color: "bg-chart-1" },
+      { name: "学习", color: "bg-chart-2" },
+      { name: "生活", color: "bg-chart-3" },
+      { name: "健康", color: "bg-chart-4" },
+    ];
+    for (const cat of defaultCategories) {
+      await this.prisma.category.create({
+        data: { name: cat.name, color: cat.color },
+      });
+    }
+
     return true;
   }
 
