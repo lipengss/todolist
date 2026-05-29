@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { login, register, fetchCaptcha } from "../api/auth";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, ArrowRight } from "lucide-react";
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -10,33 +10,64 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [captchaSvg, setCaptchaSvg] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaText, setCaptchaText] = useState("");
+  const [sliderState, setSliderState] = useState<"idle" | "sliding" | "verified" | "failed">("idle");
+  const [sliderX, setSliderX] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const lastClickRef = useRef(0);
+  const captchaStartRef = useRef(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const trackWidthRef = useRef(0);
 
-  const loadCaptcha = async () => {
+  const resetSlider = useCallback(() => {
+    setSliderState("idle");
+    setSliderX(0);
+    setCaptchaToken("");
+    captchaStartRef.current = 0;
+  }, []);
+
+  const handleSliderStart = async (_clientX: number) => {
+    if (sliderState === "verified" || sliderState === "sliding") return;
+    setSliderState("sliding");
+    captchaStartRef.current = Date.now();
     try {
       const data = await fetchCaptcha();
-      setCaptchaSvg(data.svg);
       setCaptchaToken(data.token);
-      setCaptchaText("");
     } catch {
-      // silent
+      resetSlider();
     }
   };
 
-  useEffect(() => { loadCaptcha(); }, []);
-
-  const handleCaptchaClick = () => {
-    const now = Date.now();
-    if (now - lastClickRef.current < 500) return;
-    lastClickRef.current = now;
-    loadCaptcha();
+  const handleSliderMove = (clientX: number, rect: DOMRect) => {
+    if (sliderState !== "sliding") return;
+    const x = Math.max(0, Math.min(clientX - rect.left - 22, trackWidthRef.current));
+    setSliderX(x);
   };
+
+  const handleSliderEnd = () => {
+    if (sliderState !== "sliding") return;
+    const duration = Date.now() - captchaStartRef.current;
+    const maxX = trackWidthRef.current;
+    if (sliderX >= maxX * 0.9 && duration >= 800) {
+      setSliderState("verified");
+      setSliderX(maxX);
+    } else {
+      setSliderState("failed");
+      setTimeout(resetSlider, 600);
+    }
+  };
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    const updateWidth = () => {
+      trackWidthRef.current = (slider.querySelector("[data-track]") as HTMLElement)?.clientWidth ?? 0;
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,14 +78,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         await register(username, password);
         setSubmitted(true);
       } else {
-        await login(username, password, captchaToken, captchaText);
+        await login(username, password, captchaToken);
         onLogin();
       }
     } catch (err: any) {
       const msg = err?.message || "";
       if (msg.includes("验证码")) {
         setError("验证码错误或已过期");
-        loadCaptcha();
+        resetSlider();
       } else if (msg.includes("审批中")) {
         setError("你的申请正在审批中，请等待管理员通过");
       } else if (msg.includes("400")) {
@@ -132,32 +163,71 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             />
           </div>
 
-          {!isRegister && captchaSvg && (
+          {!isRegister && (
             <div>
               <label className="text-sm text-muted-foreground block mb-1.5">验证码</label>
-              <div className="flex gap-3 items-center">
-                <input
-                  value={captchaText}
-                  onChange={(e) => setCaptchaText(e.target.value)}
-                  className="flex-1 h-11 rounded-lg border border-border bg-background px-4 text-foreground outline-none focus:border-primary transition-colors"
-                  placeholder="输入验证码"
-                  maxLength={4}
-                />
+              <div
+                ref={sliderRef}
+                className="relative w-full h-11 rounded-lg bg-muted select-none overflow-hidden cursor-pointer"
+                onMouseDown={(e) => { e.preventDefault(); handleSliderStart(e.clientX); }}
+                onMouseMove={(e) => { if (sliderState === "sliding") { const r = e.currentTarget.getBoundingClientRect(); handleSliderMove(e.clientX, r); } }}
+                onMouseUp={handleSliderEnd}
+                onMouseLeave={() => { if (sliderState === "sliding") handleSliderEnd(); }}
+                onTouchStart={(e) => { e.preventDefault(); handleSliderStart(e.touches[0].clientX); }}
+                onTouchMove={(e) => { if (sliderState === "sliding") { const r = e.currentTarget.getBoundingClientRect(); handleSliderMove(e.touches[0].clientX, r); } }}
+                onTouchEnd={handleSliderEnd}
+              >
                 <div
-                  onClick={handleCaptchaClick}
-                  className="flex-shrink-0 w-[82px] h-[42px] rounded-lg border border-border hover:border-primary cursor-pointer transition-colors overflow-hidden bg-white flex items-center justify-center"
-                  title="看不清？点击图片刷新"
-                  dangerouslySetInnerHTML={{ __html: captchaSvg }}
+                  data-track
+                  className="absolute inset-0 rounded-lg transition-colors"
+                  style={{
+                    background:
+                      sliderState === "verified" ? "oklch(0.65 0.2 160)" :
+                      sliderState === "failed" ? "oklch(0.65 0.2 30)" :
+                      "oklch(0.87 0 0)",
+                  }}
                 />
+                {sliderState === "verified" && (
+                  <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-primary-foreground">
+                    验证通过
+                  </span>
+                )}
+                {sliderState === "failed" && (
+                  <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-primary-foreground">
+                    验证失败，请重试
+                  </span>
+                )}
+                {sliderState === "idle" && (
+                  <span className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                    请按住滑块拖动到最右侧
+                  </span>
+                )}
+                {sliderState === "sliding" && (
+                  <span className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                    请继续拖动...
+                  </span>
+                )}
+                <div
+                  className="absolute top-0.5 left-0.5 w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center shadow-sm transition-[background-color]"
+                  style={{
+                    transform: `translateX(${sliderX}px)`,
+                    background: sliderState === "verified" ? "oklch(0.65 0.2 160)" : sliderState === "failed" ? "oklch(0.65 0.2 30)" : undefined,
+                  }}
+                >
+                  {sliderState === "verified" ? (
+                    <CheckCircle className="w-4 h-4 text-primary-foreground" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1.5">看不清？点击图片刷新</p>
             </div>
           )}
         </div>
 
         <button
           type="submit"
-          disabled={loading || !username || !password || (!isRegister && !captchaText)}
+          disabled={loading || !username || !password || (!isRegister && sliderState !== "verified")}
           className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           {loading ? (isRegister ? "提交中..." : "登录中...") : (isRegister ? "提交申请" : "登录")}

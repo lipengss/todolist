@@ -1,9 +1,9 @@
 import { apiFetch, setToken } from "./client";
 
-export async function login(username: string, password: string, captchaToken?: string, captchaText?: string) {
+export async function login(username: string, password: string, captchaToken?: string) {
   const data = await apiFetch<{ access_token: string }>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password, ...(captchaToken ? { captchaToken, captchaText } : {}) }),
+    body: JSON.stringify({ username, password, ...(captchaToken ? { captchaToken } : {}) }),
   });
   setToken(data.access_token);
   return data;
@@ -41,7 +41,7 @@ export function logout() {
 }
 
 export async function fetchCaptcha() {
-  return apiFetch<{ svg: string; token: string }>("/auth/captcha");
+  return apiFetch<{ token: string }>("/auth/captcha");
 }
 
 export function getUserRole(): string | null {

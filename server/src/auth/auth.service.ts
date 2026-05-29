@@ -3,7 +3,6 @@ import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
-import * as svgCaptcha from "svg-captcha";
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -14,40 +13,28 @@ export class AuthService implements OnModuleInit {
     private prisma: PrismaService,
   ) {}
 
-  private captchaStore = new Map<string, { answer: string; expiresAt: number }>();
+  private captchaStore = new Map<string, { createdAt: number }>();
 
-  generateCaptcha(): { svg: string; token: string } {
-    // Clean expired entries
+  generateCaptcha(): { token: string } {
     const now = Date.now();
     for (const [key, entry] of this.captchaStore) {
-      if (entry.expiresAt < now) this.captchaStore.delete(key);
+      if (now - entry.createdAt > 5 * 60 * 1000) this.captchaStore.delete(key);
     }
-
-    const captcha = svgCaptcha.create({
-      size: 4,
-      ignoreChars: "0o1il",
-      noise: 2,
-      color: true,
-      background: "#ffffff",
-    });
-
     const token = randomUUID();
-    this.captchaStore.set(token, {
-      answer: captcha.text.toLowerCase(),
-      expiresAt: now + 5 * 60 * 1000,
-    });
-
-    return { svg: captcha.data, token };
+    this.captchaStore.set(token, { createdAt: now });
+    return { token };
   }
 
-  validateCaptcha(token: string, text: string): boolean {
+  validateCaptcha(token: string): boolean {
     const entry = this.captchaStore.get(token);
-    if (!entry || entry.expiresAt < Date.now()) {
+    if (!entry) return false;
+    const elapsed = Date.now() - entry.createdAt;
+    if (elapsed < 800 || elapsed > 5 * 60 * 1000) {
       this.captchaStore.delete(token);
       return false;
     }
     this.captchaStore.delete(token);
-    return entry.answer === text.toLowerCase().trim();
+    return true;
   }
 
   async onModuleInit() {

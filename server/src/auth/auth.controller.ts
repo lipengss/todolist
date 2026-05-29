@@ -8,7 +8,6 @@ class LoginDto {
   @IsString() username: string;
   @IsString() password: string;
   @IsString() captchaToken: string;
-  @IsString() captchaText: string;
 }
 
 class RegisterDto {
@@ -33,7 +32,7 @@ export class AuthController {
   @Post("login")
   async login(@Body() dto: LoginDto) {
     // Validate captcha first
-    const captchaValid = this.authService.validateCaptcha(dto.captchaToken, dto.captchaText);
+    const captchaValid = this.authService.validateCaptcha(dto.captchaToken);
     if (!captchaValid) {
       throw new BadRequestException("验证码错误或已过期");
     }
