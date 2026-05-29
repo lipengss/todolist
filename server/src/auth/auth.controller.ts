@@ -97,6 +97,14 @@ export class AuthController {
     return { ok: true };
   }
 
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  async me(@Request() req: any) {
+    const info = await this.authService.getUserInfo(req.user.username);
+    if (!info) throw new UnauthorizedException("用户不存在");
+    return info;
+  }
+
   @Post("change-password")
   @UseGuards(JwtAuthGuard)
   async changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {

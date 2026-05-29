@@ -44,6 +44,17 @@ export async function fetchCaptcha() {
   return apiFetch<{ token: string }>("/auth/captcha");
 }
 
+export interface UserInfo {
+  username: string;
+  role: string;
+  storageUsed: number;
+  storageLimit: number;
+}
+
+export async function getMe() {
+  return apiFetch<UserInfo>("/auth/me");
+}
+
 export function getUserRole(): string | null {
   const token = localStorage.getItem("fw_token");
   if (!token) return null;

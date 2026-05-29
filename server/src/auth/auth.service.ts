@@ -122,6 +122,17 @@ export class AuthService implements OnModuleInit {
     return true;
   }
 
+  async getUserInfo(username: string) {
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    if (!user) return null;
+    return {
+      username: user.username,
+      role: user.role,
+      storageUsed: user.storageUsed,
+      storageLimit: 1073741824,
+    };
+  }
+
   async changePassword(username: string, oldPassword: string, newPassword: string) {
     const { valid } = await this.validateUser(username, oldPassword);
     if (!valid) return false;
