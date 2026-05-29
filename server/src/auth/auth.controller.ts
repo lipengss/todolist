@@ -7,6 +7,8 @@ import { Request as ExpressRequest } from "express";
 class LoginDto {
   @IsString() username: string;
   @IsString() password: string;
+  @IsString() captchaToken: string;
+  @IsString() captchaText: string;
 }
 
 class RegisterDto {
@@ -23,8 +25,19 @@ class ChangePasswordDto {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get("captcha")
+  getCaptcha() {
+    return this.authService.generateCaptcha();
+  }
+
   @Post("login")
   async login(@Body() dto: LoginDto) {
+    // Validate captcha first
+    const captchaValid = this.authService.validateCaptcha(dto.captchaToken, dto.captchaText);
+    if (!captchaValid) {
+      throw new BadRequestException("验证码错误或已过期");
+    }
+
     const { valid, role } = await this.authService.validateUser(dto.username, dto.password);
     if (!valid) {
       throw new UnauthorizedException("用户名或密码错误");
