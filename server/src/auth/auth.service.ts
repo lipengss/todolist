@@ -2,6 +2,8 @@ import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../prisma/prisma.service";
 import * as bcrypt from "bcrypt";
+import { randomUUID } from "crypto";
+import * as svgCaptcha from "svg-captcha";
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -11,6 +13,42 @@ export class AuthService implements OnModuleInit {
     private jwtService: JwtService,
     private prisma: PrismaService,
   ) {}
+
+  private captchaStore = new Map<string, { answer: string; expiresAt: number }>();
+
+  generateCaptcha(): { svg: string; token: string } {
+    // Clean expired entries
+    const now = Date.now();
+    for (const [key, entry] of this.captchaStore) {
+      if (entry.expiresAt < now) this.captchaStore.delete(key);
+    }
+
+    const captcha = svgCaptcha.create({
+      size: 4,
+      ignoreChars: "0o1il",
+      noise: 2,
+      color: true,
+      background: "#ffffff",
+    });
+
+    const token = randomUUID();
+    this.captchaStore.set(token, {
+      answer: captcha.text.toLowerCase(),
+      expiresAt: now + 5 * 60 * 1000,
+    });
+
+    return { svg: captcha.data, token };
+  }
+
+  validateCaptcha(token: string, text: string): boolean {
+    const entry = this.captchaStore.get(token);
+    if (!entry || entry.expiresAt < Date.now()) {
+      this.captchaStore.delete(token);
+      return false;
+    }
+    this.captchaStore.delete(token);
+    return entry.answer === text.toLowerCase().trim();
+  }
 
   async onModuleInit() {
     const count = await this.prisma.user.count();
