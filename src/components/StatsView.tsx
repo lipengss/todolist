@@ -213,30 +213,31 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
 
           {/* Due Date Donut */}
-          <section className="bg-card rounded-xl border border-border p-3">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col min-h-[250px]">
             <ReactECharts
-              style={{ height: 220 }}
+              style={{ flex: 1, minHeight: 0 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
                   text: "到期日分析",
                   left: "center",
-                  top: 8,
+                  top: 4,
                   textStyle: { color: "#e8eaed", fontSize: 14, fontWeight: 500 },
                 },
                 tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
                 legend: {
-                  bottom: 0,
+                  bottom: 4,
                   textStyle: { color: "#9ca3af", fontSize: 11 },
                   itemWidth: 10,
                   itemHeight: 10,
-                  itemGap: 16,
+                  itemGap: 12,
+                  orient: "horizontal",
                 },
                 series: [
                   {
                     type: "pie",
-                    center: ["50%", "48%"],
-                    radius: ["45%", "75%"],
+                    center: ["50%", "50%"],
+                    radius: ["35%", "62%"],
                     avoidLabelOverlap: false,
                     itemStyle: { borderRadius: 4, borderColor: "#1a1f2e", borderWidth: 3 },
                     label: { show: false },
