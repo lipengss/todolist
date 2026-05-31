@@ -102,7 +102,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
       <main className="max-w-6xl mx-auto space-y-6">
         {/* Overview Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
@@ -132,7 +132,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
@@ -151,7 +151,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
