@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import { Todo } from "./types";
-import { ScrollArea } from "./ui/ScrollArea";
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
@@ -98,13 +97,12 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
   }, [todos]);
 
   return (
-    <ScrollArea className="flex-1 min-h-0" viewportClassName="px-4 py-2">
-      <main className="max-w-6xl mx-auto space-y-3">
-        {/* Overview Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
-            <ReactECharts
-              style={{ height: 130, width: "100%" }}
+    <main className="flex-1 min-h-0 flex flex-col px-4 py-2 max-w-6xl mx-auto w-full gap-3">
+      {/* Overview Cards */}
+      <section className="grid grid-cols-3 gap-3 flex-shrink-0">
+        <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
+          <ReactECharts
+            style={{ height: 130, width: "100%" }}
               option={{
                 backgroundColor: "transparent",
                 series: [
@@ -171,11 +169,11 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
           {/* Priority Distribution */}
-          <section className="bg-card rounded-xl border border-border p-3">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
             <ReactECharts
-              style={{ height: 220 }}
+              style={{ flex: 1, minHeight: 0 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -258,11 +256,11 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
           {/* Category Distribution */}
-          <section className="bg-card rounded-xl border border-border p-3">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
             <ReactECharts
-              style={{ height: 220 }}
+              style={{ flex: 1, minHeight: 0 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -306,9 +304,9 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
 
           {/* 7-Day Trend */}
-          <section className="bg-card rounded-xl border border-border p-3">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
             <ReactECharts
-              style={{ height: 220 }}
+              style={{ flex: 1, minHeight: 0 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -353,7 +351,6 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </section>
         </div>
-      </main>
-    </ScrollArea>
+    </main>
   );
 }
