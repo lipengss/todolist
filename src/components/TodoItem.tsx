@@ -11,6 +11,7 @@ interface TodoItemProps {
   batchMode?: boolean;
   selected?: boolean;
   onSelect?: (id: string) => void;
+  hideOnComplete?: boolean;
   onOpenDetail: (id: string) => void;
   onToggle: (id: string) => void;
   onToggleStar: (id: string) => void;
@@ -27,6 +28,7 @@ export function TodoItem({
   batchMode = false,
   selected = false,
   onSelect,
+  hideOnComplete = false,
   onOpenDetail,
   onToggle,
   onToggleStar,
@@ -36,11 +38,11 @@ export function TodoItem({
   const [hiding, setHiding] = useState(false);
 
   useEffect(() => {
-    if (todo.completed && !hiding) {
+    if (hideOnComplete && todo.completed && !hiding) {
       const timer = setTimeout(() => setHiding(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [todo.completed, hiding]);
+  }, [hideOnComplete, todo.completed, hiding]);
 
   if (hiding) return null;
 

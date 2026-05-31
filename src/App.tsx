@@ -489,6 +489,7 @@ export default function App() {
                         isTrashView={filter === "trash"}
                         batchMode={batchMode}
                         selected={selectedIds.has(todo.id)}
+                        hideOnComplete={filter !== "completed" && filter !== "trash"}
                         onSelect={(id) => setSelectedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; })}
                         onOpenDetail={setSelectedTodoId}
                         onToggle={(id) => updateTodo(id, { completed: !todos.find((t) => t.id === id)?.completed })}
