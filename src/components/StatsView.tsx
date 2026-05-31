@@ -56,14 +56,14 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
     const total = todos.length;
     const completionRate = total > 0 ? Math.round((completed.length / total) * 100) : 0;
 
-    const categoryDistribution = Array.from(categoryCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([catId, count]) => ({
+    const categoryDistribution = Array.from(categoryMap.entries())
+      .map(([catId, cat]) => ({
         id: catId,
-        name: categoryMap.get(catId)?.name ?? catId,
-        color: categoryMap.get(catId)?.color ?? "bg-muted",
-        count,
-      }));
+        name: cat.name,
+        color: cat.color,
+        count: categoryCounts.get(catId) ?? 0,
+      }))
+      .sort((a, b) => a.count - b.count);
 
     return {
       total,
@@ -279,7 +279,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                 },
                 yAxis: {
                   type: "category",
-                  data: stats.categoryDistribution.map((c) => c.name).reverse(),
+                  data: stats.categoryDistribution.map((c) => c.name),
                   ...AXIS_STYLE,
                   axisLabel: { color: "#e8eaed", fontSize: 12 },
                 },
@@ -293,8 +293,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                           color: CAT_COLORS[c.color] ?? "#8b5cf6",
                           borderRadius: [0, 4, 4, 0],
                         },
-                      }))
-                      .reverse(),
+                      })),
                     barWidth: 18,
                     label: { show: true, position: "right", color: "#9ca3af", fontSize: 12 },
                   },
