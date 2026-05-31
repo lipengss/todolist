@@ -1,14 +1,7 @@
-import { BarChart3, CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane, Users } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle, CirclePlus, Clock, FileText, Pencil, Plus, Settings, SquarePen, Star, Trash2, Plane } from "lucide-react";
 import { useState } from "react";
 import { Category, FilterType } from "./types";
 import { ScrollArea } from "./ui/ScrollArea";
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return bytes + "B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + "KB";
-  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + "MB";
-  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + "GB";
-}
 
 interface SidebarProps {
   activeFilter: FilterType;
@@ -32,11 +25,6 @@ interface SidebarProps {
     dueSoonCount?: number;
     completedCount?: number;
   };
-  pendingApprovalCount?: number;
-  userRole?: string | null;
-  authenticated?: boolean;
-  storageUsed?: number;
-  storageLimit?: number;
 }
 
 export function Sidebar({
@@ -51,11 +39,6 @@ export function Sidebar({
   onOpenSettings,
   categories,
   stats,
-  pendingApprovalCount = 0,
-  userRole = null,
-  authenticated = false,
-  storageUsed = 0,
-  storageLimit = 1073741824,
 }: SidebarProps) {
   const [categoryEditMode, setCategoryEditMode] = useState(false);
   const mainViews: { id: FilterType; label: string; icon: typeof CalendarDays; count?: number }[] = [
@@ -200,28 +183,6 @@ export function Sidebar({
             </div>
           </section>
 
-          {userRole === "admin" && (
-            <section className="space-y-1">
-              <button
-                type="button"
-                onClick={() => onFilterChange("approvals")}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                  activeFilter === "approvals" ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5" />
-                  <span>用户审批</span>
-                </div>
-                {pendingApprovalCount > 0 && (
-                  <span className="bg-chart-4 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                    {pendingApprovalCount}
-                  </span>
-                )}
-              </button>
-            </section>
-          )}
-
           <section className="space-y-1 pt-4 border-t border-border">
             {bottomViews.map((view) => (
               <button
@@ -242,23 +203,6 @@ export function Sidebar({
           </section>
         </div>
       </ScrollArea>
-
-      {authenticated && (
-        <div className="px-6 pb-4 flex-shrink-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-sidebar-foreground">存储空间</span>
-            <span className="text-xs text-sidebar-foreground">
-              {formatSize(storageUsed)} / {formatSize(storageLimit)}
-            </span>
-          </div>
-          <div className="h-1 bg-sidebar-accent rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${Math.min(100, (storageUsed / storageLimit) * 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
     </aside>
   );
 }

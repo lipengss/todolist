@@ -1,6 +1,5 @@
 import { FormEvent, useRef, useEffect, useMemo, useState } from "react";
 
-
 import { CalendarView } from "./components/CalendarView";
 import { EmptyState } from "./components/EmptyState";
 import { QuickAddBar } from "./components/QuickAddBar";
@@ -21,14 +20,10 @@ import { TimePicker } from "./components/ui/TimePicker";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useNotificationScheduler } from "./hooks/useNotificationScheduler";
 import { getSettings, updateSettings } from "./hooks/useSettings";
-import { ApprovalPage } from "./components/ApprovalPage";
+import { useTodos } from "./hooks/useTodos";
+import { useCategories, type StoredCategory } from "./hooks/useCategories";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
 import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
-import { useApiTodos } from "./hooks/useApiTodos";
-import { useApiCategories } from "./hooks/useApiCategories";
-import { LoginModal } from "./components/LoginScreen";
-import { isLoggedIn, logout, getUserRole, getRegistrations, getMe } from "./api/auth";
-import { type StoredCategory } from "./hooks/useCategories";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "bg-chart-1": "bg-chart-1/20 text-chart-1 border-chart-1/30",
@@ -40,6 +35,13 @@ const CATEGORY_STYLES: Record<string, string> = {
 
 const CATEGORY_COLORS = Object.keys(CATEGORY_STYLES);
 const getToday = () => new Date().toISOString().split("T")[0];
+
+const DEFAULT_CATEGORIES: StoredCategory[] = [
+  { id: "__default_work", name: "工作", color: "bg-chart-1" },
+  { id: "__default_study", name: "学习", color: "bg-chart-2" },
+  { id: "__default_life", name: "生活", color: "bg-chart-3" },
+  { id: "__default_health", name: "健康", color: "bg-chart-4" },
+];
 
 interface NewTodoForm {
   text: string;
@@ -54,7 +56,7 @@ interface NewTodoForm {
 const createEmptyTodoForm = (): NewTodoForm => ({
   text: "",
   note: "",
-  category: "work",
+  category: DEFAULT_CATEGORIES[0].id,
   priority: "medium",
   dueDate: getToday(),
   dueTime: "",
@@ -68,12 +70,14 @@ function isDueSoon(todo: Todo) {
   return due >= today && due <= today + 7 * 24 * 60 * 60 * 1000;
 }
 
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(isLoggedIn());
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [userStorage, setUserStorage] = useState({ used: 0, limit: 1073741824 });
-  const { todos, loading, add: addTodoApi, update: updateTodoBase, softDelete: softDeleteTodo, removeMany: removeTodosApi, reload: reloadTodos } = useApiTodos();
-  const { categories: storedCategories, add: addCategory, update: updateCategory, remove: deleteCategory, reload: reloadCategories } = useApiCategories();
+  const { todos, updateTodo, addTodo, removeTodos } = useTodos([]);
+  const { categories: storedCategories, addCategory, updateCategory, deleteCategory } = useCategories(DEFAULT_CATEGORIES);
+
   type StatCardFilter = "pending" | "highPriority" | "dueSoon" | "completed";
 
   const [filter, setFilter] = useState<FilterType>("today");
@@ -92,24 +96,6 @@ export default function App() {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [settingsForm, setSettingsForm] = useState(getSettings);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const userRole = getUserRole();
-  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
-
-  useEffect(() => {
-    if (authenticated) {
-      getMe().then(info => {
-        setUserStorage({ used: info.storageUsed, limit: info.storageLimit });
-      }).catch(() => {});
-    }
-  }, [authenticated]);
-
-  useEffect(() => {
-    if (userRole === "admin") {
-      getRegistrations().then(list => {
-        setPendingApprovalCount(list.filter(r => r.status === "pending").length);
-      }).catch(() => {});
-    }
-  }, [userRole, authenticated]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,7 +129,7 @@ export default function App() {
         if (!raw || typeof raw !== "object") throw new Error("Invalid format");
         const importedTodos = Array.isArray(raw.todos) ? raw.todos as Todo[] : [];
         for (const todo of importedTodos) {
-          await addTodoApi({ text: todo.text, note: todo.note, completed: todo.completed, starred: todo.starred, priority: todo.priority, dueDate: todo.dueDate, dueTime: todo.dueTime, recurrence: todo.recurrence, category: todo.category, createdAt: todo.createdAt, subtasks: todo.subtasks?.map(s => ({ text: s.text, completed: s.completed })) });
+          addTodo({ ...todo, id: todo.id || generateId() });
         }
       } catch {
         alert("导入失败：文件格式不正确");
@@ -216,7 +202,7 @@ export default function App() {
     onCreateTodo: () => setCreateOpen(true),
     onToggleFocused: (index) => {
       const todo = filteredTodos[index];
-      if (todo) updateTodoBase(todo.id, { completed: !todo.completed });
+      if (todo) updateTodo(todo.id, { completed: !todo.completed });
     },
     onOpenFocused: (index) => {
       const todo = filteredTodos[index];
@@ -263,11 +249,11 @@ export default function App() {
 
   const handleCreateTodo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!authenticated) { setLoginModalOpen(true); return; }
     const text = newTodo.text.trim();
     if (!text) return;
 
-    const created = await addTodoApi({
+    addTodo({
+      id: generateId(),
       text,
       note: newTodo.note.trim() || undefined,
       completed: false,
@@ -278,22 +264,20 @@ export default function App() {
       dueTime: newTodo.dueTime || undefined,
       recurrence: newTodo.recurrence === "none" ? undefined : newTodo.recurrence,
       createdAt: getToday(),
-    });
+    } as Todo);
 
     setNewTodo(createEmptyTodoForm());
     setCreateOpen(false);
     setFilter("today");
-    setSelectedTodoId(created.id);
   };
 
   const handleCreateCategory = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!authenticated) { setLoginModalOpen(true); return; }
     const name = newCategoryName.trim();
     if (!name) return;
 
     const category: StoredCategory = {
-      id: `category-${crypto.randomUUID()}`,
+      id: generateId(),
       name,
       color: newCategoryColor,
     };
@@ -329,25 +313,25 @@ export default function App() {
   };
 
   const handleDeleteTodo = (id: string) => {
-    softDeleteTodo(id);
+    updateTodo(id, { deletedAt: new Date().toISOString() });
     if (selectedTodoId === id) setSelectedTodoId(null);
   };
 
   const handleRestoreTodo = (id: string) => {
-    updateTodoBase(id, { deletedAt: undefined });
+    updateTodo(id, { deletedAt: undefined });
   };
 
   const handleQuickAddTodo = (text: string, date: string) => {
-    if (!authenticated) { setLoginModalOpen(true); return; }
-    addTodoApi({
+    addTodo({
+      id: generateId(),
       text,
       completed: false,
       starred: false,
       priority: "medium",
-      category: storedCategories[0]?.id ?? "work",
+      category: storedCategories[0]?.id ?? DEFAULT_CATEGORIES[0].id,
       dueDate: date,
       createdAt: getToday(),
-    });
+    } as Todo);
   };
 
   const titles: Record<FilterType, string> = {
@@ -368,45 +352,21 @@ export default function App() {
     return `${now.getMonth() + 1}月${now.getDate()}日 ${weekDays[now.getDay()]}`;
   })();
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-lg">加载中...</p>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <LoginModal
-        open={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
-        onLogin={() => {
-          setAuthenticated(true);
-          setLoginModalOpen(false);
-          reloadTodos();
-          reloadCategories();
-        }}
-      />
     <div className="h-screen min-h-0 flex overflow-hidden bg-background">
       {!sidebarCollapsed && (
         <Sidebar
-          authenticated={authenticated}
-          storageUsed={userStorage.used}
-          storageLimit={userStorage.limit}
           activeFilter={filter}
           onFilterChange={(f) => { setFilter(f); setStatCardFilter(null); }}
           activeCategory={categoryFilter}
           onCategoryChange={(c) => { setCategoryFilter(c); setStatCardFilter(null); }}
-          onCreateTodo={() => { if (!authenticated) { setLoginModalOpen(true); return; } setCreateOpen(true); }}
-          onCreateCategory={() => { if (!authenticated) { setLoginModalOpen(true); return; } setCategoryOpen(true); }}
+          onCreateTodo={() => setCreateOpen(true)}
+          onCreateCategory={() => setCategoryOpen(true)}
           onEditCategory={openEditCategory}
           onDeleteCategory={handleDeleteCategory}
           onOpenSettings={() => { setSettingsOpen(true); setSettingsForm(getSettings()); }}
           categories={categories}
           stats={stats}
-          pendingApprovalCount={pendingApprovalCount}
-          userRole={userRole}
         />
       )}
 
@@ -423,8 +383,6 @@ export default function App() {
             onDueFilterChange={setDueFilter}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
-            authenticated={authenticated}
-            onLoginClick={() => setLoginModalOpen(true)}
           />
         </div>
 
@@ -434,13 +392,9 @@ export default function App() {
             categories={categoryById}
             categoryStyles={CATEGORY_STYLES}
             onOpenDetail={setSelectedTodoId}
-            onToggle={(id) => updateTodoBase(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
+            onToggle={(id) => updateTodo(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
             onAddTodo={handleQuickAddTodo}
           />
-        ) : filter === "approvals" ? (
-          <div className="flex-1 min-w-0">
-            <ApprovalPage />
-          </div>
         ) : filter === "stats" ? (
           <StatsView todos={activeTodos} categoryMap={categoryById} />
         ) : (
@@ -460,7 +414,7 @@ export default function App() {
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => removeTodosApi(trashedTodos.map(t => t.id))}
+                    onClick={() => removeTodos(trashedTodos.map(t => t.id))}
                     className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     清空回收站
@@ -471,7 +425,7 @@ export default function App() {
               <div className="space-y-3">
                 {filteredTodos.length === 0 ? (
                   filter === "trash" ? (
-                    <EmptyState icon={<Trash2 className="w-7 h-7" />} title="垃圾箱为空" description="删除的任务会出现在这里，7天后可以彻底清理" />
+                    <EmptyState icon={<Trash2 className="w-7 h-7" />} title="垃圾箱为空" description="删除的任务会出现在这里" />
                   ) : filter === "completed" ? (
                     <EmptyState icon={<CheckCircle className="w-7 h-7" />} title="还没有已完成的任务" description="完成任务后，它们会出现在这里" />
                   ) : searchQuery.trim() ? (
@@ -491,8 +445,8 @@ export default function App() {
                         categoryColor={CATEGORY_STYLES[category?.color ?? ""] ?? "bg-muted text-muted-foreground border-border"}
                         isTrashView={filter === "trash"}
                         onOpenDetail={setSelectedTodoId}
-                        onToggle={(id) => updateTodoBase(id, { completed: !todos.find((todo) => todo.id === id)?.completed })}
-                        onToggleStar={(id) => updateTodoBase(id, { starred: !todos.find((todo) => todo.id === id)?.starred })}
+                        onToggle={(id) => updateTodo(id, { completed: !todos.find((t) => t.id === id)?.completed })}
+                        onToggleStar={(id) => updateTodo(id, { starred: !todos.find((t) => t.id === id)?.starred })}
                         onDelete={handleDeleteTodo}
                         onRestore={handleRestoreTodo}
                       />
@@ -724,7 +678,7 @@ export default function App() {
             "bg-muted text-muted-foreground border-border"
           }
           onClose={() => setSelectedTodoId(null)}
-          onUpdate={updateTodoBase}
+          onUpdate={updateTodo}
           onDelete={handleDeleteTodo}
           onRestore={handleRestoreTodo}
         />
@@ -801,14 +755,6 @@ export default function App() {
               </button>
             </div>
             <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
-
-            <button
-              type="button"
-              onClick={() => { logout(); setAuthenticated(false); setSettingsOpen(false); }}
-              className="w-full h-[45px] rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 text-sm mt-3"
-            >
-              退出登录
-            </button>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
@@ -831,6 +777,5 @@ export default function App() {
         </FormPrimitive.Form>
       </Modal>
     </div>
-    </>
   );
 }
