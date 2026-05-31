@@ -97,6 +97,13 @@ export default function App() {
   const [settingsForm, setSettingsForm] = useState(getSettings);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Auto-clean trash older than 30 days
+  useEffect(() => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const stale = todos.filter(t => t.deletedAt && t.deletedAt < thirtyDaysAgo);
+    if (stale.length > 0) removeTodos(stale.map(t => t.id));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportData = () => {
@@ -128,6 +135,13 @@ export default function App() {
         const raw = JSON.parse(e.target?.result as string);
         if (!raw || typeof raw !== "object") throw new Error("Invalid format");
         const importedTodos = Array.isArray(raw.todos) ? raw.todos as Todo[] : [];
+        const importedCategories = Array.isArray(raw.categories) ? raw.categories as StoredCategory[] : [];
+        // Import categories first, skip duplicates
+        for (const cat of importedCategories) {
+          if (!storedCategories.some(c => c.name === cat.name)) {
+            addCategory({ id: cat.id || generateId(), name: cat.name, color: cat.color });
+          }
+        }
         for (const todo of importedTodos) {
           addTodo({ ...todo, id: todo.id || generateId() });
         }
