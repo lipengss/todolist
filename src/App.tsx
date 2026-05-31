@@ -96,6 +96,8 @@ export default function App() {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [settingsForm, setSettingsForm] = useState(getSettings);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Auto-clean trash older than 30 days
   useEffect(() => {
@@ -424,6 +426,20 @@ export default function App() {
                 <QuickAddBar onAdd={handleQuickAddTodo} />
               )}
 
+              {filter !== "trash" && filteredTodos.length > 0 && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }}
+                    className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                      batchMode ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {batchMode ? "退出批量模式" : "批量操作"}
+                  </button>
+                </div>
+              )}
+
               {filter === "trash" && trashedTodos.length > 0 && (
                 <div className="flex justify-end">
                   <button
@@ -471,6 +487,9 @@ export default function App() {
                         categoryName={category?.name ?? "未分类"}
                         categoryColor={CATEGORY_STYLES[category?.color ?? ""] ?? "bg-muted text-muted-foreground border-border"}
                         isTrashView={filter === "trash"}
+                        batchMode={batchMode}
+                        selected={selectedIds.has(todo.id)}
+                        onSelect={(id) => setSelectedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; })}
                         onOpenDetail={setSelectedTodoId}
                         onToggle={(id) => updateTodo(id, { completed: !todos.find((t) => t.id === id)?.completed })}
                         onToggleStar={(id) => updateTodo(id, { starred: !todos.find((t) => t.id === id)?.starred })}
@@ -483,6 +502,33 @@ export default function App() {
               </div>
             </main>
           </ScrollArea>
+        )}
+
+        {/* Batch action bar */}
+        {batchMode && selectedIds.size > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pb-6 pointer-events-none">
+            <div className="pointer-events-auto bg-card border border-border rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
+              <span className="text-sm text-foreground font-medium">已选 {selectedIds.size} 项</span>
+              <button
+                onClick={() => {
+                  if (window.confirm(`确定删除选中的 ${selectedIds.size} 个任务？`)) {
+                    selectedIds.forEach(id => updateTodo(id, { deletedAt: new Date().toISOString() }));
+                    setSelectedIds(new Set());
+                    setBatchMode(false);
+                  }
+                }}
+                className="px-4 py-1.5 bg-destructive/10 text-destructive text-sm rounded-lg hover:bg-destructive/20 transition-colors"
+              >
+                批量删除
+              </button>
+              <button
+                onClick={() => { setSelectedIds(new Set()); setBatchMode(false); }}
+                className="px-4 py-1.5 border border-border text-muted-foreground text-sm rounded-lg hover:text-foreground transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
         )}
       </div>
 

@@ -7,6 +7,9 @@ interface TodoItemProps {
   categoryColor: string;
   isTrashView: boolean;
   focused?: boolean;
+  batchMode?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
   onOpenDetail: (id: string) => void;
   onToggle: (id: string) => void;
   onToggleStar: (id: string) => void;
@@ -20,6 +23,9 @@ export function TodoItem({
   categoryColor,
   isTrashView,
   focused = false,
+  batchMode = false,
+  selected = false,
+  onSelect,
   onOpenDetail,
   onToggle,
   onToggleStar,
@@ -47,12 +53,23 @@ export function TodoItem({
       }}
       className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-all duration-300 cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none ${todo.completed ? "animate-complete" : "animate-fade-in"} ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50 hover:shadow-md"}`}
     >
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onToggle(todo.id);
-        }}
+      {batchMode && onSelect ? (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onSelect(todo.id); }}
+          className={`flex-shrink-0 mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+            selected ? "bg-primary border-primary" : "border-muted-foreground/40 hover:border-primary"
+          }`}
+        >
+          {selected && <Check className="w-3.5 h-3.5 text-white" />}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggle(todo.id);
+          }}
         disabled={isTrashView}
         className={`flex-shrink-0 mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
           todo.completed
@@ -63,6 +80,7 @@ export function TodoItem({
       >
         {todo.completed && <Check className="w-3.5 h-3.5 text-white" />}
       </button>
+      )}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2 mb-2">
