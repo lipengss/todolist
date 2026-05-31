@@ -150,24 +150,20 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-5">
-            <div className="w-12 h-12 rounded-xl bg-chart-5/15 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-6 h-6 text-chart-5" />
+          <div className="bg-card rounded-xl border border-border p-4 flex flex-col items-center justify-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-chart-5/15 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-chart-5" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">待完成任务</p>
-              <p className="text-2xl font-semibold text-foreground mt-1">{stats.unfinished}</p>
-            </div>
+            <p className="text-2xl font-semibold text-foreground">{stats.unfinished}</p>
+            <p className="text-xs text-muted-foreground">待完成</p>
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-5">
-            <div className="w-12 h-12 rounded-xl bg-chart-1/15 flex items-center justify-center flex-shrink-0">
-              <CalendarCheck className="w-6 h-6 text-chart-1" />
+          <div className="bg-card rounded-xl border border-border p-4 flex flex-col items-center justify-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-chart-1/15 flex items-center justify-center">
+              <CalendarCheck className="w-5 h-5 text-chart-1" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">逾期任务</p>
-              <p className="text-2xl font-semibold text-chart-2 mt-1">{stats.dueDateBreakdown.overdueCount}</p>
-            </div>
+            <p className="text-2xl font-semibold text-chart-2">{stats.dueDateBreakdown.overdueCount}</p>
+            <p className="text-xs text-muted-foreground">已逾期</p>
           </div>
         </section>
 
