@@ -131,14 +131,14 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                     axisLabel: { show: false },
                     detail: {
                       valueAnimation: true,
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: "bold",
                       color: "#e8eaed",
-                      offsetCenter: [0, "30%"],
+                      offsetCenter: [0, "-10%"],
                       formatter: "{value}%",
                     },
                     title: {
-                      offsetCenter: [0, "65%"],
+                      offsetCenter: [0, "20%"],
                       color: "#9ca3af",
                       fontSize: 12,
                     },
