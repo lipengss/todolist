@@ -23,7 +23,7 @@ import { getSettings, updateSettings } from "./hooks/useSettings";
 import { useTodos } from "./hooks/useTodos";
 import { useCategories, type StoredCategory } from "./hooks/useCategories";
 import { ShortcutHelpPanel } from "./components/ShortcutHelpPanel";
-import { PackageOpen, Search, Trash2, CheckCircle } from "lucide-react";
+import { PackageOpen, Plus, Search, Trash2, CheckCircle } from "lucide-react";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "bg-chart-1": "bg-chart-1/20 text-chart-1 border-chart-1/30",
@@ -407,14 +407,14 @@ export default function App() {
               />
 
               {filter !== "trash" && (
-                <QuickAddBar onAdd={(text) => handleQuickAddTodo(text, getToday())} />
+                <QuickAddBar onAdd={handleQuickAddTodo} />
               )}
 
               {filter === "trash" && trashedTodos.length > 0 && (
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => removeTodos(trashedTodos.map(t => t.id))}
+                    onClick={() => { if (window.confirm(`确定清空 ${trashedTodos.length} 个任务？此操作不可恢复。`)) removeTodos(trashedTodos.map(t => t.id)); }}
                     className="px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     清空回收站
@@ -425,13 +425,26 @@ export default function App() {
               <div className="space-y-3">
                 {filteredTodos.length === 0 ? (
                   filter === "trash" ? (
-                    <EmptyState icon={<Trash2 className="w-7 h-7" />} title="垃圾箱为空" description="删除的任务会出现在这里" />
+                    <EmptyState icon={<Trash2 className="w-7 h-7" />} title="垃圾箱为空" description="删除的任务会出现在这里，30天后自动清除" />
                   ) : filter === "completed" ? (
                     <EmptyState icon={<CheckCircle className="w-7 h-7" />} title="还没有已完成的任务" description="完成任务后，它们会出现在这里" />
                   ) : searchQuery.trim() ? (
                     <EmptyState icon={<Search className="w-7 h-7" />} title="没有匹配的任务" description="试试使用不同的关键词搜索" />
                   ) : (
-                    <EmptyState icon={<PackageOpen className="w-7 h-7" />} title="暂无任务" description="点击左侧「新建任务」或使用 Ctrl+N 快捷键创建" />
+                    <EmptyState
+                      icon={<PackageOpen className="w-7 h-7" />}
+                      title="暂无任务"
+                      description="点击下方按钮或使用 Ctrl+N 快捷键创建第一个任务"
+                      action={
+                        <button
+                          onClick={() => setCreateOpen(true)}
+                          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+                        >
+                          <Plus className="w-4 h-4" />
+                          新建任务
+                        </button>
+                      }
+                    />
                   )
                 ) : (
                   filteredTodos.map((todo, index) => {

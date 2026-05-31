@@ -45,7 +45,7 @@ export function TodoItem({
       onKeyDown={(event) => {
         if (event.key === "Enter") onOpenDetail(todo.id);
       }}
-      className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none animate-fade-in ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50 hover:shadow-md"}`}
+      className={`group flex items-start gap-4 p-5 bg-card rounded-2xl border transition-all duration-300 cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none ${todo.completed ? "animate-complete" : "animate-fade-in"} ${focused ? "border-primary/50 ring-2 ring-primary/50" : "border-border hover:border-primary/50 hover:shadow-md"}`}
     >
       <button
         type="button"
@@ -98,8 +98,14 @@ export function TodoItem({
             </span>
           )}
           {subtaskCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              子任务 {completedSubtaskCount}/{subtaskCount}
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="w-12 h-1 bg-muted rounded-full overflow-hidden flex-shrink-0">
+                <span
+                  className="block h-full bg-chart-5 rounded-full transition-all duration-300"
+                  style={{ width: `${(completedSubtaskCount / subtaskCount) * 100}%` }}
+                />
+              </span>
+              {completedSubtaskCount}/{subtaskCount}
             </span>
           )}
         </div>
@@ -126,7 +132,9 @@ export function TodoItem({
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                onDelete(todo.id);
+                if (window.confirm("确定要删除这个任务吗？")) {
+                  onDelete(todo.id);
+                }
               }}
               className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-accent"
               aria-label="移到回收站"
