@@ -99,7 +99,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
   return (
     <main className="flex-1 min-h-0 flex flex-col px-4 py-2 max-w-6xl mx-auto w-full gap-3">
       {/* Overview Cards */}
-      <section className="grid grid-cols-3 gap-3 flex-shrink-0">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-shrink-0">
         <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
           <ReactECharts
             style={{ height: 130, width: "100%" }}
@@ -169,9 +169,9 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
           {/* Priority Distribution */}
-          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col min-h-[250px]">
             <ReactECharts
               style={{ flex: 1, minHeight: 0 }}
               option={{
@@ -256,9 +256,9 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
           {/* Category Distribution */}
-          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col min-h-[250px]">
             <ReactECharts
               style={{ flex: 1, minHeight: 0 }}
               option={{
@@ -304,7 +304,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
 
           {/* 7-Day Trend */}
-          <section className="bg-card rounded-xl border border-border p-3 flex flex-col">
+          <section className="bg-card rounded-xl border border-border p-3 flex flex-col min-h-[250px]">
             <ReactECharts
               style={{ flex: 1, minHeight: 0 }}
               option={{
