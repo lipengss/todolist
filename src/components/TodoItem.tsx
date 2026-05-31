@@ -1,4 +1,5 @@
 import { Check, FileText, Repeat, Star, Trash2, RotateCcw } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Todo } from "./types";
 
 interface TodoItemProps {
@@ -32,6 +33,17 @@ export function TodoItem({
   onDelete,
   onRestore,
 }: TodoItemProps) {
+  const [hiding, setHiding] = useState(false);
+
+  useEffect(() => {
+    if (todo.completed && !hiding) {
+      const timer = setTimeout(() => setHiding(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [todo.completed, hiding]);
+
+  if (hiding) return null;
+
   const priorityColors = {
     high: "bg-chart-2/20 text-chart-2 border-chart-2/30",
     medium: "bg-chart-1/20 text-chart-1 border-chart-1/30",

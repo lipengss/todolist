@@ -98,7 +98,6 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
 
   // Auto-clean trash older than 30 days
   useEffect(() => {
@@ -156,7 +155,7 @@ export default function App() {
     event.target.value = "";
   };
 
-  const activeTodos = useMemo(() => todos.filter((todo) => !todo.deletedAt && (!todo.completed || recentlyCompleted.has(todo.id))), [todos, recentlyCompleted]);
+  const activeTodos = useMemo(() => todos.filter((todo) => !todo.deletedAt), [todos]);
   const trashedTodos = useMemo(() => todos.filter((todo) => todo.deletedAt), [todos]);
   const selectedTodo = useMemo(() => todos.find((todo) => todo.id === selectedTodoId) ?? null, [selectedTodoId, todos]);
 
@@ -338,14 +337,6 @@ export default function App() {
     updateTodo(id, { deletedAt: undefined });
   };
 
-  const handleToggleComplete = (id: string, completed: boolean) => {
-    updateTodo(id, { completed });
-    if (completed) {
-      setRecentlyCompleted(prev => new Set(prev).add(id));
-      setTimeout(() => setRecentlyCompleted(prev => { const next = new Set(prev); next.delete(id); return next; }), 400);
-    }
-  };
-
   const handleQuickAddTodo = (text: string, date: string) => {
     addTodo({
       id: generateId(),
@@ -417,7 +408,7 @@ export default function App() {
             categories={categoryById}
             categoryStyles={CATEGORY_STYLES}
             onOpenDetail={setSelectedTodoId}
-            onToggle={(id) => { const t = todos.find(x => x.id === id); if (t) handleToggleComplete(id, !t.completed); }}
+            onToggle={(id) => updateTodo(id, { completed: !todos.find((t) => t.id === id)?.completed })}
             onAddTodo={handleQuickAddTodo}
           />
         ) : filter === "stats" ? (
