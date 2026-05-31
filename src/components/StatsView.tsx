@@ -103,7 +103,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
       <main className="max-w-6xl mx-auto space-y-6">
         {/* Overview Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-card rounded-xl border border-border p-6 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
@@ -134,11 +134,11 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                       fontSize: 28,
                       fontWeight: "bold",
                       color: "#e8eaed",
-                      offsetCenter: [0, "60%"],
+                      offsetCenter: [0, "30%"],
                       formatter: "{value}%",
                     },
                     title: {
-                      offsetCenter: [0, "85%"],
+                      offsetCenter: [0, "65%"],
                       color: "#9ca3af",
                       fontSize: 12,
                     },
@@ -150,7 +150,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-6 flex items-center gap-5">
+          <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-5">
             <div className="w-12 h-12 rounded-xl bg-chart-5/15 flex items-center justify-center flex-shrink-0">
               <TrendingUp className="w-6 h-6 text-chart-5" />
             </div>
@@ -160,7 +160,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             </div>
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-6 flex items-center gap-5">
+          <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-5">
             <div className="w-12 h-12 rounded-xl bg-chart-1/15 flex items-center justify-center flex-shrink-0">
               <CalendarCheck className="w-6 h-6 text-chart-1" />
             </div>
