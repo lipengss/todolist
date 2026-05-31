@@ -7,6 +7,7 @@ interface DatePickerProps {
   value: string;
   placeholder?: string;
   onChange: (value: string) => void;
+  className?: string;
 }
 
 function formatDisplayDate(dateStr: string): string {
@@ -15,7 +16,7 @@ function formatDisplayDate(dateStr: string): string {
   return `${parseInt(m)}月${parseInt(d)}日`;
 }
 
-export function DatePicker({ value, placeholder = "选择日期...", onChange }: DatePickerProps) {
+export function DatePicker({ value, placeholder = "选择日期...", onChange, className = "" }: DatePickerProps) {
   const selected = value ? new Date(value + "T00:00:00") : undefined;
 
   return (
@@ -23,7 +24,7 @@ export function DatePicker({ value, placeholder = "选择日期...", onChange }:
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="w-full h-[45px] inline-flex items-center justify-between gap-2 bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30 transition-colors"
+          className={`w-full h-[45px] inline-flex items-center justify-between gap-2 bg-card border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 ring-ring/30 transition-colors ${className}`}
         >
           <span className={value ? "text-foreground" : "text-muted-foreground"}>
             {value ? formatDisplayDate(value) : placeholder}
