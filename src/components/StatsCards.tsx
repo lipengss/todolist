@@ -20,7 +20,7 @@ export function StatsCards({ stats, activeCard, onCardClick }: StatsCardsProps) 
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
       {cards.map((card) => {
         const isActive = activeCard === card.key;
         return (
@@ -28,13 +28,13 @@ export function StatsCards({ stats, activeCard, onCardClick }: StatsCardsProps) 
             type="button"
             key={card.key}
             onClick={() => onCardClick(card.key)}
-            className={`bg-card rounded-lg p-5 border shadow-sm text-left transition-colors ${card.hoverClass} ${
+            className={`bg-card rounded-lg p-3 md:p-5 border shadow-sm text-left transition-colors ${card.hoverClass} ${
               isActive ? card.activeClass : "border-border"
             }`}
           >
-            <p className="text-muted-foreground text-sm mb-2">{card.label}</p>
-            <p className={`text-3xl font-semibold leading-normal ${card.color}`}>
-              {card.count} <span className="text-base font-normal text-muted-foreground">项</span>
+            <p className="text-muted-foreground text-xs md:text-sm mb-1 md:mb-2">{card.label}</p>
+            <p className={`text-2xl md:text-3xl font-semibold leading-normal ${card.color}`}>
+              {card.count} <span className="text-sm md:text-base font-normal text-muted-foreground">项</span>
             </p>
           </button>
         );

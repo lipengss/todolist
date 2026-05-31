@@ -398,8 +398,8 @@ export default function App() {
         ) : filter === "stats" ? (
           <StatsView todos={activeTodos} categoryMap={categoryById} />
         ) : (
-          <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
-            <main className="max-w-6xl mx-auto space-y-6">
+          <ScrollArea className="flex-1 min-h-0" viewportClassName="px-4 md:px-6 lg:px-8 py-4 md:py-6">
+            <main className="max-w-6xl mx-auto space-y-4 md:space-y-6">
               <StatsCards
                 stats={stats}
                 activeCard={statCardFilter}
@@ -696,7 +696,7 @@ export default function App() {
           className="space-y-5"
         >
           <div className="space-y-2">
-            <span className="text-sm text-muted-foreground">提前提醒时间（分钟）</span>
+            <span className="text-sm text-muted-foreground mb-2 block">提前提醒时间（分钟）</span>
             <InputNumber
               value={settingsForm.reminderMinutes}
               min={1}
@@ -725,7 +725,7 @@ export default function App() {
 
           {settingsForm.repeatEnabled && (
             <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">重复间隔（分钟）</span>
+              <span className="text-sm text-muted-foreground mb-2 block">重复间隔（分钟）</span>
               <InputNumber
                 value={settingsForm.repeatIntervalMinutes}
                 min={1}
@@ -737,7 +737,7 @@ export default function App() {
           )}
 
           <div className="pt-4 border-t border-border space-y-3">
-            <span className="text-sm text-muted-foreground">数据管理</span>
+            <span className="text-sm text-muted-foreground mb-2 block">数据管理</span>
             <div className="flex gap-3">
               <button
                 type="button"
