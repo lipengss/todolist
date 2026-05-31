@@ -102,7 +102,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
       <main className="max-w-6xl mx-auto space-y-6">
         {/* Overview Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
@@ -122,8 +122,8 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                     axisTick: { show: false },
                     splitLine: { show: false },
                     axisLabel: { show: false },
-                    detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-10%"], formatter: "{value}" },
-                    title: { offsetCenter: [0, "20%"], color: "#9ca3af", fontSize: 11 },
+                    detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-22%"], formatter: "{value}" },
+                    title: { offsetCenter: [0, "28%"], color: "#9ca3af", fontSize: 11 },
                     data: [{ value: stats.completed, name: "已完成" }],
                   },
                 ],
@@ -132,7 +132,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
@@ -151,7 +151,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-center">
+          <div className="bg-card rounded-xl border border-border p-2 flex items-center justify-center">
             <ReactECharts
               style={{ height: 160, width: "100%" }}
               option={{
