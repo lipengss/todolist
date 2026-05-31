@@ -98,13 +98,13 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
   }, [todos]);
 
   return (
-    <ScrollArea className="flex-1 min-h-0" viewportClassName="px-8 py-6">
-      <main className="max-w-6xl mx-auto space-y-6">
+    <ScrollArea className="flex-1 min-h-0" viewportClassName="px-4 py-2">
+      <main className="max-w-6xl mx-auto space-y-3">
         {/* Overview Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
-              style={{ height: 160, width: "100%" }}
+              style={{ height: 130, width: "100%" }}
               option={{
                 backgroundColor: "transparent",
                 series: [
@@ -134,7 +134,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
 
           <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
-              style={{ height: 160, width: "100%" }}
+              style={{ height: 130, width: "100%" }}
               option={{
                 backgroundColor: "transparent",
                 series: [{
@@ -153,7 +153,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
 
           <div className="bg-card rounded-xl border border-border p-1 flex items-center justify-center">
             <ReactECharts
-              style={{ height: 160, width: "100%" }}
+              style={{ height: 130, width: "100%" }}
               option={{
                 backgroundColor: "transparent",
                 series: [{
@@ -171,11 +171,11 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Priority Distribution */}
-          <section className="bg-card rounded-xl border border-border p-5">
+          <section className="bg-card rounded-xl border border-border p-3">
             <ReactECharts
-              style={{ height: 300 }}
+              style={{ height: 220 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -185,7 +185,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                   textStyle: { color: "#e8eaed", fontSize: 14, fontWeight: 500 },
                 },
                 tooltip: { trigger: "axis" },
-                grid: { left: 60, right: 40, top: 50, bottom: 30 },
+                grid: { left: 50, right: 30, top: 40, bottom: 20 },
                 xAxis: {
                   type: "value",
                   ...AXIS_STYLE,
@@ -215,9 +215,9 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
 
           {/* Due Date Donut */}
-          <section className="bg-card rounded-xl border border-border p-5">
+          <section className="bg-card rounded-xl border border-border p-3">
             <ReactECharts
-              style={{ height: 300 }}
+              style={{ height: 220 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -258,11 +258,11 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Category Distribution */}
-          <section className="bg-card rounded-xl border border-border p-5">
+          <section className="bg-card rounded-xl border border-border p-3">
             <ReactECharts
-              style={{ height: 300 }}
+              style={{ height: 220 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -272,7 +272,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                   textStyle: { color: "#e8eaed", fontSize: 14, fontWeight: 500 },
                 },
                 tooltip: { trigger: "axis" },
-                grid: { left: 70, right: 40, top: 50, bottom: 30 },
+                grid: { left: 55, right: 30, top: 40, bottom: 20 },
                 xAxis: {
                   type: "value",
                   ...AXIS_STYLE,
@@ -306,9 +306,9 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
           </section>
 
           {/* 7-Day Trend */}
-          <section className="bg-card rounded-xl border border-border p-5">
+          <section className="bg-card rounded-xl border border-border p-3">
             <ReactECharts
-              style={{ height: 300 }}
+              style={{ height: 220 }}
               option={{
                 backgroundColor: "transparent",
                 title: {
@@ -318,7 +318,7 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                   textStyle: { color: "#e8eaed", fontSize: 14, fontWeight: 500 },
                 },
                 tooltip: { trigger: "axis" },
-                grid: { left: 40, right: 20, top: 50, bottom: 30 },
+                grid: { left: 35, right: 20, top: 40, bottom: 20 },
                 xAxis: {
                   type: "category",
                   data: trendData.map((d) => d.label),
