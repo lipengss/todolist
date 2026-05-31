@@ -142,8 +142,8 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                   min: 0, max: stats.total || 1, splitNumber: 10,
                   axisLine: { show: true, lineStyle: { width: 10, color: [[stats.unfinished / (stats.total || 1), "#8b5cf6"], [1, "#252a39"]] } },
                   pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
-                  detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-10%"], formatter: "{value}" },
-                  title: { offsetCenter: [0, "20%"], color: "#9ca3af", fontSize: 11 },
+                  detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-22%"], formatter: "{value}" },
+                  title: { offsetCenter: [0, "28%"], color: "#9ca3af", fontSize: 11 },
                   data: [{ value: stats.unfinished, name: "待完成" }],
                 }],
               }}
@@ -161,8 +161,8 @@ export function StatsView({ todos, categoryMap }: StatsViewProps) {
                   min: 0, max: stats.unfinished || 1, splitNumber: 10,
                   axisLine: { show: true, lineStyle: { width: 10, color: [[stats.dueDateBreakdown.overdueCount / (stats.unfinished || 1), "#ef4444"], [1, "#252a39"]] } },
                   pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
-                  detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-10%"], formatter: "{value}" },
-                  title: { offsetCenter: [0, "20%"], color: "#9ca3af", fontSize: 11 },
+                  detail: { valueAnimation: true, fontSize: 26, fontWeight: "bold", color: "#e8eaed", offsetCenter: [0, "-22%"], formatter: "{value}" },
+                  title: { offsetCenter: [0, "28%"], color: "#9ca3af", fontSize: 11 },
                   data: [{ value: stats.dueDateBreakdown.overdueCount, name: "已逾期" }],
                 }],
               }}
